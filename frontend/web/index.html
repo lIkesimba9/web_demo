@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+    TODO:
+        - scale
+        - response errors
+        - preloader
+        - erase old regions after new image upladed
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Demo</title>
+
+    <style>
+
+        .region {
+            border: 2px solid yellow;
+            position: absolute;
+        }
+
+        .region:hover {
+            border: 2px solid red;
+            position: absolute;
+        }
+
+    </style>
+
+  </head>
+  <body>
+    <input type="file" onchange="upload(this);" />
+    <hr>
+    <div>
+        <p id='image-width'>Width: </p>
+        <p id='image-height'>Height: </p>
+        <p id='image-size'>Size: </p>
+    </div>
+    <div id='container' style="position: relative;">
+        <img id="blah" />
+
+  </body>
+  <script>
+    BACKEND = '{{ BACKEND }}';
+
+    console.log('BACKEND is: ' + BACKEND);
+
+    function onResponse(response)
+    {
+
+        document.getElementById( 'image-width').innerHTML =  'Width: ' + response['info'][ 'width'];
+        document.getElementById('image-height').innerHTML = 'Height: ' + response['info']['height'];
+        document.getElementById(  'image-size').innerHTML =   'Size: ' + response['info'][  'size'];
+
+        regions = response['regions'];
+
+        container = document.getElementById('container');
+
+        regions.forEach((region) => {
+            console.log(region);
+
+            el = document.createElement('div');
+
+            el.setAttribute('class', 'region')
+
+            el.style.left   = region.x + 'px';
+            el.style.top    = region.y + 'px';
+            el.style.width  = region.w + 'px';
+            el.style.height = region.h + 'px';
+
+            container.appendChild(el);
+        });
+    }
+
+    function upload(input) {
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                document.getElementById('blah').setAttribute('src', e.target.result);
+                //document.getElementById('blah').setAttribute('width', '75%');
+                //document.getElementById('blah').setAttribute('height', '75%');
+            };
+
+            reader.readAsDataURL(input.files[0]);
+
+            const xhr = new XMLHttpRequest();
+
+            const fileData = new FormData();
+            fileData.append("file", input.files[0]);
+
+
+            xhr.onload = function (r) {
+
+                response = JSON.parse(xhr.responseText);
+
+                if ( response.success )
+                    onResponse(response);
+                else
+                    alert(response.message);
+
+            };
+
+            xhr.open("POST", BACKEND + "/process", true);
+            xhr.send(fileData);
+        }
+
+    }
+
+    
+
+</script>
+</html>
