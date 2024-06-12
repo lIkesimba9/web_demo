@@ -1,0 +1,8 @@
+fastapi==0.65.2
+starlette==0.14.2
+pydantic==1.8.2
+typing-extensions>=4.8.0
+PyYAML==5.3.1
+tritonclient[all]==2.31.0
+ultralytics==8.2.31
+SQLAlchemy==1.4.22
