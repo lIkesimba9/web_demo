@@ -287,7 +287,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/few_networks_inference", response_model=BestResult, tags=["Inference"])
-async def get_best_result(models: List[str], model_text_AI_name: str, model_text_image_AI_name: str, file: UploadFile = File(...)):
+async def get_best_result(models: List[str], model_text_AI_name: str, model_text_image_AI_name: str, is_realtime: bool, file: UploadFile = File(...)):
     try:
         models = models[0].split(',')
         image_path = f"temp/{file.filename}"
@@ -303,8 +303,11 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
                 result_array_box = process_nn_results_coordinates(yolo_obj)
                 classes = process_nn_result_class_names(yolo_obj)
                 result_confs = process_nn_result_conf(yolo_obj)
-                descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
-                descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+                descriptions_based_on_class_names = "<no>"
+                descriptions_based_on_image = "<no>"
+                if not is_realtime:
+                    descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+                    descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
                 results.append( 
                     {"model": model_name,
                      "result_array_box": result_array_box,
