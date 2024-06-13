@@ -263,7 +263,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
             descriptions_based_on_class_names = "<no>"
             descriptions_based_on_image = "<no>"
             if not is_realtime:
-                #descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+                descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
                 descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
             os.remove(image_path)
             results = {"model": model_name, 
@@ -272,7 +272,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
                  "inference_time": yolo_obj.speed['inference'],
                  "confidence": result_confs,
                  "avarage_confidence": calculate_average(result_confs),
-                 "descriptions_text_AI_model": [], #descriptions_based_on_class_names, 
+                 "descriptions_text_AI_model": descriptions_based_on_class_names, 
                  "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                  }
         elif model_name == "yolov9":
