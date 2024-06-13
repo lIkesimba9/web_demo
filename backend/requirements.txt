@@ -5,4 +5,5 @@ typing-extensions>=4.8.0
 PyYAML==5.3.1
 tritonclient[all]==2.31.0
 ultralytics==8.2.31
-python-multipart
+python-multipart==0.0.9
+uvicorn==0.30.1
