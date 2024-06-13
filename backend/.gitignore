@@ -2,3 +2,4 @@ images
 temp
 __pycache__
 venv
+.env

@@ -26,7 +26,7 @@ python3 main.py
 or
 ```
 docker build -t ml-backend-python .
-docker run --name ml-backend-container --network custom_network -p 8004:8001 ml-backend-python
+docker run --name ml-backend-container --network custom_network -p 8004:8004 ml-backend-python
 ```
 
 Run swagger in browser
@@ -43,6 +43,12 @@ Enjoy
 
 SIMPLE BUILD & RUN:
 
+0. Install & run 'ollama' 
+```
+curl -fsSL https://ollama.com/install.sh | sh
+ollama run llama3
+```
+
 1. From './web_demo/yolov8-triton' dir
 ```
 docker build -t yolov8-triton .
@@ -53,7 +59,7 @@ docker run -it --rm -p 8000:8000 --network custom_network -v ./models:/models --
 2. From './web_demo/backend' dir:
 ```
 docker build -t ml-backend-python .
-docker run --name ml-backend-container --network custom_network -p 8004:8001 ml-backend-python
+docker run --name ml-backend-container --network custom_network -p 8004:8004 ml-backend-python
 ```
 
 3. From browser:
