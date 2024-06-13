@@ -12,9 +12,9 @@ class YOLOModel:
     def __init__(self, name: str, size: str):
         # Temporary (!!!)
         if name == "yolov8" and size == "large":
-            self.model = YOLO(f"http://localhost:8000/{name}", task="detect")
+            self.model = YOLO(f"http://ml-service-container:8000/{name}", task="detect")
         else:
-            self.model = YOLO(f"http://localhost:8000/{name}_{size}", task="detect")
+            self.model = YOLO(f"http://ml-service-container:8000/{name}_{size}", task="detect")
         self.name = name
         self.size = size
 
