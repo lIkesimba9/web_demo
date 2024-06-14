@@ -20,11 +20,11 @@ default_params = {
     'model_text_image_AI_name': 'gemini-pro-vision',
     'run_AI_assistante': 'false',
     'confidence_threshold': 0.1,
-    'line_thickness': 8,
+    'line_thickness': 6,
     'line_color': 'blue',
-    'class_font_size': 48,
+    'class_font_size': 36,
     'class_font_color': 'blue',
-    'confidence_font_size': 48,
+    'confidence_font_size': 36,
     'confidence_font_color': 'blue'
 }
 
@@ -40,8 +40,8 @@ def get_user_params(user_id):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("⚙️ Настройки", callback_data='settings')],
-        [InlineKeyboardButton("Показать текущие настройки", callback_data='show_params')],
-        [InlineKeyboardButton("Запустить анализ", callback_data='start_analysis')]
+        [InlineKeyboardButton("📊 Показать текущие настройки", callback_data='show_params')],
+        [InlineKeyboardButton("⚛️ Запустить анализ", callback_data='start_analysis')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Привет! Настройте параметры для анализа:', reply_markup=reply_markup)
@@ -49,8 +49,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_main_menu(context, chat_id, text):
     keyboard = [
         [InlineKeyboardButton("⚙️ Настройки", callback_data='settings')],
-        [InlineKeyboardButton("Показать текущие настройки", callback_data='show_params')],
-        [InlineKeyboardButton("Запустить анализ", callback_data='start_analysis')]
+        [InlineKeyboardButton("📊 Показать текущие настройки", callback_data='show_params')],
+        [InlineKeyboardButton("⚛️ Запустить анализ", callback_data='start_analysis')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
@@ -61,21 +61,37 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = query.from_user.id
     params = get_user_params(user_id)
 
+    if query.data == 'func_settings':
+        keyboard = [
+            [InlineKeyboardButton("🔍 Выбрать модель", callback_data='choose_model')],
+            [InlineKeyboardButton("📚 Выбрать текстовую AI модель", callback_data='choose_text_ai')],
+            [InlineKeyboardButton("🖼️ Выбрать модель текст+изображение AI", callback_data='choose_text_image_ai')],
+            [InlineKeyboardButton("🤖 Выбрать режим работы (run AI assistents)", callback_data='choose_run_AI_assistents')],
+            [InlineKeyboardButton("✅ Установить уровень confidence", callback_data='choose_confidence_threshold')],
+            [InlineKeyboardButton("🔙 Назад", callback_data='settings')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text="Выберите параметры для анализа:", reply_markup=reply_markup)
+
+    if query.data == 'view_settings':
+        keyboard = [
+            [InlineKeyboardButton("📏 Толщина линий", callback_data='choose_line_thickness')],
+            [InlineKeyboardButton("🖊️ Цвет линий", callback_data='choose_line_color')],
+            [InlineKeyboardButton("📝 Размер шрифта (class)", callback_data='choose_class_font_size')],
+            [InlineKeyboardButton("🖍 Цвет шрифта (class)", callback_data='choose_class_font_color')],
+            [InlineKeyboardButton("📝 Размер шрифта (confidence)", callback_data='choose_confidence_font_size')],
+            [InlineKeyboardButton("🖍 Цвет шрифта (confidence)", callback_data='choose_confidence_font_color')],
+            [InlineKeyboardButton("🔙 Назад", callback_data='settings')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text="Выберите параметры для анализа:", reply_markup=reply_markup)
+
     if query.data == 'settings':
         keyboard = [
-            [InlineKeyboardButton("Выбрать модель", callback_data='choose_model')],
-            [InlineKeyboardButton("Выбрать текстовую AI модель", callback_data='choose_text_ai')],
-            [InlineKeyboardButton("Выбрать модель текст+изображение AI", callback_data='choose_text_image_ai')],
-            [InlineKeyboardButton("Выбрать режим работы (run AI assistants)", callback_data='choose_run_AI_assistents')],
-            [InlineKeyboardButton("Установить уровень confidence", callback_data='choose_confidence_threshold')],
-            [InlineKeyboardButton("Толщина линий", callback_data='choose_line_thickness')],
-            [InlineKeyboardButton("Цвет линий", callback_data='choose_line_color')],
-            [InlineKeyboardButton("Размер шрифта (класс)", callback_data='choose_class_font_size')],
-            [InlineKeyboardButton("Цвет шрифта (класс)", callback_data='choose_class_font_color')],
-            [InlineKeyboardButton("Размер шрифта (confidence)", callback_data='choose_confidence_font_size')],
-            [InlineKeyboardButton("Цвет шрифта (confidence)", callback_data='choose_confidence_font_color')],
-            [InlineKeyboardButton("Сбросить параметры на значения по умолчанию", callback_data='reset_defaults')],
-            [InlineKeyboardButton("Назад", callback_data='back_to_main')]
+            [InlineKeyboardButton("🛠 Функциональные настройки", callback_data='func_settings')],
+            [InlineKeyboardButton("🌄 Настройки визуализации", callback_data='view_settings')],
+            [InlineKeyboardButton("🔄 Сбросить параметры в default", callback_data='reset_defaults')],
+            [InlineKeyboardButton("🔙 Назад", callback_data='back_to_main')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Выберите параметры для анализа:", reply_markup=reply_markup)
@@ -83,11 +99,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'back_to_main':
         keyboard = [
             [InlineKeyboardButton("⚙️ Настройки", callback_data='settings')],
-            [InlineKeyboardButton("Показать текущие настройки", callback_data='show_params')],
-            [InlineKeyboardButton("Запустить анализ", callback_data='start_analysis')]
+            [InlineKeyboardButton("📊 Показать текущие настройки", callback_data='show_params')],
+            [InlineKeyboardButton("⚛️ Запустить анализ", callback_data='start_analysis')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text="Привет! Настройте параметры для анализа:", reply_markup=reply_markup)
+        await query.edit_message_text(text="Настройте параметры для анализа:", reply_markup=reply_markup)
 
     elif query.data == 'reset_defaults':
         user_params[user_id] = default_params.copy()
@@ -298,19 +314,19 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('Пожалуйста, настройте параметры перед отправкой изображения.')
             return
 
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Идет обработка изображения\.\.\.", parse_mode=ParseMode.MARKDOWN_V2)
+
         photo = update.message.photo[-1]
         file = await photo.get_file()
         file_path = os.path.join('temp', file.file_id + '.jpg')
         await file.download(custom_path=file_path)
         
-        # Вызов функции инференса с параметрами пользователя
         inference_result = await call_inference_api(file_path, params)
         inference_result = inference_result["results"]
 
-        # Рисование прямоугольников на изображении
         image = Image.open(file_path)
         draw = ImageDraw.Draw(image)
-        font = ImageFont.load_default()  # Использование встроенного шрифта PIL
+        font = ImageFont.load_default()
         confidence_font = ImageFont.load_default()
 
         for box, cls_, conf in zip(inference_result['result_array_box'], inference_result['classes'], inference_result['confidence']):
@@ -332,13 +348,16 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption = (
             f"**Average confidence:**  `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
             f"**Inference time:**      `{'{:.3f}s'.format(inference_result['inference_time'])}`\n"
-            f"**Descriptions Text AI Model:** `{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n"
+        )
+
+        AI_assistents_messages = (
+            f"**Descriptions Text AI Model:** `{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n\n"
             f"**Descriptions Image and Text AI Model:** `{'{}'.format(inference_result['descriptions_image_and_text_AI_model'])}`"
         )
 
         with open(result_image_path, 'rb') as result_image_file:
             await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)
-
+        await context.bot.send_message(chat_id=update.message.chat_id, text=AI_assistents_messages, parse_mode=ParseMode.MARKDOWN_V2)
         await show_main_menu(context, update.message.chat_id, "Выберите дальнейшее действие")
 
     except Exception as e:
@@ -358,6 +377,8 @@ async def handle_image_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('Пожалуйста, отправьте файл изображения.')
             return
 
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Идет обработка изображения\.\.\.", parse_mode=ParseMode.MARKDOWN_V2)
+
         file = await document.get_file()
         file_path = os.path.join('temp', file.file_id + os.path.splitext(document.file_name)[1])
         await file.download(custom_path=file_path)
@@ -372,28 +393,34 @@ async def handle_image_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         font = ImageFont.load_default()  # Использование встроенного шрифта PIL
         confidence_font = ImageFont.load_default()
 
-        for box, cls, conf in zip(inference_result['result_array_box'], inference_result['classes'], inference_result['confidence']):
+        for box, cls_, conf in zip(inference_result['result_array_box'], inference_result['classes'], inference_result['confidence']):
             if conf >= params['confidence_threshold']:
                 draw.rectangle(box, outline=params['line_color'], width=params['line_thickness'])
-                draw.text((box[0], box[1] - 10), f'{cls}', fill=params['class_font_color'], font=font)
-                draw.text((box[2], box[1] - 10), f'{conf:.2f}', fill=params['confidence_font_color'], font=confidence_font)
+                draw.text((box[0], box[1] - 10), f'{cls_}', fill=params['class_font_color'], font=font, anchor="ls", size=params['class_font_size'])
+                draw.text((box[2], box[1] - 10), f'{conf:.2f}', fill=params['confidence_font_color'], font=confidence_font, anchor="ls", size=params['confidence_font_size'])
 
         # Сохранение изображения с прямоугольниками
         result_image_path = os.path.join('temp', 'result_' + file.file_id + '.jpg')
         image.save(result_image_path)
 
-        # Проверка существования файла перед отправкой
         if not os.path.exists(result_image_path):
             await update.message.reply_text('Не удалось создать файл с результатом.')
             return
 
-        # Отправка изображения с подписью
         caption = (
-            f"**Average confidence:** `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
-            f"**Inference time:**     `{'{:.3f}s'.format(inference_result['inference_time'])}`\n"
-            f"**Descriptions Text AI Model:** `{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n"
+            f"**Average confidence:**  `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
+            f"**Inference time:**      `{'{:.3f}s'.format(inference_result['inference_time'])}`\n"
+        )
+
+        AI_assistents_messages = (
+            f"**Descriptions Text AI Model:** `{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n\n"
             f"**Descriptions Image and Text AI Model:** `{'{}'.format(inference_result['descriptions_image_and_text_AI_model'])}`"
         )
+
+        with open(result_image_path, 'rb') as result_image_file:
+            await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)
+        await context.bot.send_message(chat_id=update.message.chat_id, text=AI_assistents_messages, parse_mode=ParseMode.MARKDOWN_V2)
+        await show_main_menu(context, update.message.chat_id, "Выберите дальнейшее действие")
 
         with open(result_image_path, 'rb') as result_image_file:
             await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)

@@ -22,7 +22,7 @@ echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" > ./telegram-bot/.env
 
 # Install and run 'ollama'
 # curl -fsSL https://ollama.com/install.sh | sh
-nohup ollama run llama3 &
+# ollama run llama3 &
 
 # Run Docker Compose
 docker-compose up --build

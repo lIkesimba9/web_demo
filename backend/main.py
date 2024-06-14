@@ -10,7 +10,7 @@ import google.generativeai as genai
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 
-olama_client = Client(host='http://localhost:11434')
+olama_client = Client(host='http://host.docker.internal:11434')
 global_ml_models = None
 
 class MLModelsInit:
@@ -124,16 +124,21 @@ def calculate_average(arr):
     return sum(arr) / len(arr)
 
 def get_description_based_on_class_name(model_text_AI_name, classes):
-    # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
-    tmp_classes = ["Слишком мало металла"]
-    request_string = "Тебе на вход будет передаваться описание дефекта сварного шва. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот название дефекта: "
-    responses = []
-    for cls_ in tmp_classes:
-        request_string_ = request_string + cls_
-        response = fetch_text_AI_chat_response(model_text_AI_name, request_string_)
-        response_str = response["message"]["content"]
-        responses.append(response_str)
-    return responses
+    try:
+        # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
+        # tmp_classes = ["Слишком мало металла"]
+        request_string = "Тебе на вход будет передаваться описание дефекта сварного шва. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот название дефекта: "
+        responses = []
+        for cls_ in classes:
+            request_string_ = request_string + cls_
+            response = fetch_text_AI_chat_response(model_text_AI_name, request_string_)
+            response_str = response["message"]["content"]
+            responses.append(response_str)
+        return responses
+    except Exception as e:
+        err_str = "Error getting response from 'text_AI'"
+        print("Error:", err_str)
+        return err_str
 
 def fetch_text_AI_chat_response(model_text_AI_name, request_string):
     try:
@@ -152,7 +157,9 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
         else:
             raise ValueError("Unknown 'model_text_AI_name':", model_text_AI_name)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        err_str = "Error getting response from 'text_AI'"
+        print("Error:", err_str)
+        return err_str
 
 def call_text_image_AI_api(model_text_image_AI_name: str, text: str, file_path: str):
     api_url = "http://gemini_proxy:8005"
@@ -168,9 +175,8 @@ def call_text_image_AI_api(model_text_image_AI_name: str, text: str, file_path: 
         return result_str
     else:
         err_str = "Error getting response from 'text_image_AI'"
-        print("Error: err_str")
+        print("Error:", err_str)
         return err_str
-        # raise Exception(f"Error {response.status_code}: {response.text}")
 
 def string_to_list(string):
     try:
@@ -181,10 +187,10 @@ def string_to_list(string):
         return f"Ошибка при декодировании JSON: {e}"
 
 def get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes):
-    tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
+    # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
     request_string = "Тебе на вход будет передаваться описания дефекта сварного шва. Координаты обнаруженного дефекта на изображении и само изображение. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком."
     responses = []
-    for cls_, coords in zip(tmp_classes,result_array_box):
+    for cls_, coords in zip(classes,result_array_box):
         request_string_ = request_string + "Вот название/описание дефекта: " + cls_ + ". "
         request_string_ = request_string_ + "Вот координаты дефекта на изображении в формате xyxy: " + str(coords) + "."
         print("request_string_:", request_string_)
@@ -225,9 +231,8 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
                  "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                  }
         elif model_name == "yolov9":
-            # model = global_ml_models.yolov8Model.infer()
             pass
-        # и так далее
+        # etc
         else:
             raise ValueError("Unknown 'model_name':", model_name)
         
