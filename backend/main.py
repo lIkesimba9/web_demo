@@ -8,22 +8,37 @@ import torch
 import ollama
 from ollama import Client
 from dotenv import load_dotenv
-import openai
-from openai import OpenAI
+# import openai
+# from openai import OpenAI
 import base64
 import requests
+# from gemini import Gemini
+import google.generativeai as genai
+import PIL.Image
+
 
 load_dotenv()
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
+google_api_key = os.getenv('GOOGLE_API_KEY')
 
 if not openai_api_key:
     raise ValueError("API ключ не найден в .env файле")
 
-client = OpenAI(api_key=openai_api_key)
+if not google_api_key:
+    raise ValueError("API ключ не найден в .env файле")
+
+# client = OpenAI(api_key=openai_api_key)
 # client = OpenAI()
 
-print("client:", client)
+# print("client:", client)
+
+# cookies = {}
+# client_gemini = Gemini(cookies=cookies)
+
+GOOGLE_API_KEY=google_api_key
+genai.configure(api_key=GOOGLE_API_KEY)
+gemai_model = genai.GenerativeModel('gemini-pro-vision')
 
 global_ml_models = None
 olama_client = None
@@ -171,40 +186,70 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
+#     try:
+#         print("[1]")
+#         if model_text_image_AI_name == "chat-gpt-4o":
+#             # Создаем запрос к API
+#             print("[1-1]")
+
+#             def encode_image(image_path):
+#                 with open(image_path, "rb") as image_file:
+#                     return base64.b64encode(image_file.read()).decode("utf-8")
+
+#             base64_image = encode_image(image_path_)
+
+#             MODEL="gpt-3.5-turbo-instruct"
+
+#             print("[1-2]")
+
+#             response = client.chat.completions.create(
+#                 model=MODEL,
+#                 messages=[
+#                     {"role": "system", "content": "You are ChatGPT"},
+#                     {"role": "user", "content": [
+#                         {"type": "text", "text": text},
+#                         {"type": "image_url", "image_url": {
+#                             "url": f"data:image/png;base64,{base64_image}"},
+#                         },
+#                     ]}
+#                 ],
+#                 max_tokens=300,
+#             )
+
+
+#             print("[2]")
+#             response_str = response.choices[0].message.content
+#             print("[3]")
+#             return response_str
+#         elif model_text_AI_name == "chat-gpt-3.5":
+#             # model = global_ml_models.yolov8Model.infer()
+#             pass
+#         # и так далее
+#         else:
+#             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
+
+#     except ValueError as ve:
+#         error_message = f"ValueError: {ve}"
+#         print(error_message)
+#         raise HTTPException(status_code=400, detail=error_message)
+#     except Exception as e:
+#         print("error_message:", print(e))
+#         raise HTTPException(status_code=400, detail=str(e))
+
 def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
     try:
         print("[1]")
         if model_text_image_AI_name == "chat-gpt-4o":
             # Создаем запрос к API
-            print("[1-1]")
-
-            def encode_image(image_path):
-                with open(image_path, "rb") as image_file:
-                    return base64.b64encode(image_file.read()).decode("utf-8")
-
-            base64_image = encode_image(image_path_)
-
-            MODEL="gpt-3.5-turbo-instruct"
-
-            print("[1-2]")
-
-            response = client.chat.completions.create(
-                model=MODEL,
-                messages=[
-                    {"role": "system", "content": "You are ChatGPT"},
-                    {"role": "user", "content": [
-                        {"type": "text", "text": text},
-                        {"type": "image_url", "image_url": {
-                            "url": f"data:image/png;base64,{base64_image}"},
-                        },
-                    ]}
-                ],
-                max_tokens=300,
-            )
-
-
+            # response = client.generate_content(text, image=image_path_)
+            # img = PIL.Image.open(image_path_)
+            f = genai.upload_file(image_path_)
+            response = gemai_model.generate_content([text, f])
+            print(response)
+            response_str = response.text
             print("[2]")
-            response_str = response.choices[0].message.content
+            # response_str = response.choices[0].message.content
             print("[3]")
             return response_str
         elif model_text_AI_name == "chat-gpt-3.5":
@@ -221,7 +266,6 @@ def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path
     except Exception as e:
         print("error_message:", print(e))
         raise HTTPException(status_code=400, detail=str(e))
-
 
 def string_to_list(string):
     try:
@@ -263,7 +307,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
             descriptions_based_on_class_names = "<no>"
             descriptions_based_on_image = "<no>"
             if not is_realtime:
-                descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+                # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
                 descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
             os.remove(image_path)
             results = {"model": model_name, 
@@ -272,7 +316,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
                  "inference_time": yolo_obj.speed['inference'],
                  "confidence": result_confs,
                  "avarage_confidence": calculate_average(result_confs),
-                 "descriptions_text_AI_model": descriptions_based_on_class_names, 
+                 "descriptions_text_AI_model": [], #descriptions_based_on_class_names, 
                  "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                  }
         elif model_name == "yolov9":
