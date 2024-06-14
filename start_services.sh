@@ -10,7 +10,7 @@ fi
 GOOGLE_API_KEY=$1
 
 # Create .env file for environment variables
-echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./web_demo/backend/.env
+echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./backend/.env
 
 # Install and run 'ollama'
 curl -fsSL https://ollama.com/install.sh | sh
