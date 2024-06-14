@@ -47,8 +47,6 @@ services:
     build:
       context: ./telegram-bot
     container_name: telegram-bot-container
-    ports:
-      - "8004:8004"
     networks:
       - custom_network
     env_file:
