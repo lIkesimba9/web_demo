@@ -6,15 +6,8 @@ from typing import List, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-
 load_dotenv()
-
-# openai_api_key = os.getenv('OPENAI_API_KEY')
 google_api_key = os.getenv('GOOGLE_API_KEY')
-
-# if not openai_api_key:
-#     raise ValueError("OPENAI_API_KEY ключ не найден в .env файле")
-
 if not google_api_key:
     raise ValueError("GOOGLE_API_KEY не найден в .env файле")
 
@@ -22,7 +15,6 @@ GOOGLE_API_KEY=google_api_key
 genai.configure(api_key=GOOGLE_API_KEY)
 gemai_model = genai.GenerativeModel('gemini-pro-vision')
 
-# FastAPI app
 app = FastAPI()
 
 def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
@@ -34,9 +26,8 @@ def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path
             response_str = response.text
             return response_str
         elif model_text_image_AI_name == "chat-gpt-3.5":
-            # model = global_ml_models.yolov8Model.infer()
             pass
-        # и так далее
+        # etc
         else:
             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
 
@@ -61,10 +52,7 @@ async def infer_gemini(model_text_image_AI_name: str = Form(...), text: str = Fo
 
 if __name__ == "__main__":
     import uvicorn
-    dir1 = "images"
-    dir2 = "temp"
+    dir1 = "temp"
     if not os.path.exists(dir1):
         os.makedirs(dir1)
-    if not os.path.exists(dir2):
-        os.makedirs(dir2)
     uvicorn.run(app, host="0.0.0.0", port=8005)

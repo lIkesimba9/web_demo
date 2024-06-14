@@ -20,9 +20,11 @@ TELEGRAM_BOT_TOKEN=$2
 echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./gemini-proxy/.env
 echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" > ./telegram-bot/.env
 
+# Install and run 'ollama'
+# curl -fsSL https://ollama.com/install.sh | sh
+nohup ollama run llama3 &
+
 # Run Docker Compose
 docker-compose up --build
 
-# Install and run 'ollama'
-curl -fsSL https://ollama.com/install.sh | sh
-ollama run llama3
+

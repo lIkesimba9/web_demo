@@ -6,28 +6,11 @@ from typing import List, Dict, Any
 from ultralytics import YOLO
 import torch
 from ollama import Client
-from dotenv import load_dotenv
 import google.generativeai as genai
 import requests
-
-
-load_dotenv()
-
-# openai_api_key = os.getenv('OPENAI_API_KEY')
-google_api_key = os.getenv('GOOGLE_API_KEY')
-
-# if not openai_api_key:
-#     raise ValueError("OPENAI_API_KEY ключ не найден в .env файле")
-
-if not google_api_key:
-    raise ValueError("GOOGLE_API_KEY не найден в .env файле")
-
-GOOGLE_API_KEY=google_api_key
-genai.configure(api_key=GOOGLE_API_KEY)
-gemai_model = genai.GenerativeModel('gemini-pro-vision')
+from fastapi.middleware.cors import CORSMiddleware
 
 olama_client = Client(host='http://localhost:11434')
-
 global_ml_models = None
 
 class MLModelsInit:
@@ -75,6 +58,14 @@ app = FastAPI(
     title="API for working with machine learning models for object detection",
     description="This API provides capabilities for working with machine learning models designed for object detection. You can use it to recognize objects in images, upload tagged images, and get better recognition results from multiple neural networks",
     version="0.0.1"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 def average_results(results):
@@ -135,8 +126,6 @@ def calculate_average(arr):
 def get_description_based_on_class_name(model_text_AI_name, classes):
     # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
     tmp_classes = ["Слишком мало металла"]
-    # requestString = "Подскажи пожалуйста. Мы на хакатоне решаем задачу по детекции дефектов сварных швов. При детектировании дефекта ему присваемается определенный класс (описание дефекта). Эти классы поступают в виде строки-массива: '[\"Класс_дефекта_1\", \"Класс_дефекта_2\", \"Класс_дефекта_3\", \"Класс_дефекта_1\"]'. Нужно сгенерировать строку-ответ в виде: '[\"Рекомендация_по_устранению_дефекта_класса_1\"; \"Рекомендация_по_устранению_дефекта_класса_2\"; \"Рекомендация_по_устранению_дефекта_класса_3\";, \"Рекомендация_по_устранению_дефекта_класса_4\"]' (И БОЛЬШЕ НИКАКОГО ТЕКСТА В ОТВЕТЕ БЫТЬ НЕ ДОЛЖНО, а также все должно быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот настоящий массив классов дефектов (на каждый из классов нужно дать пояснение): "
-    # request_string = "Мы на хакатоне решаем задачу по детекции дефектов сварных швов. При детектировании дефекта ему присваемается определенный класс (описание дефекта). Сгенерируй пожалуйста рекомендацию по устранению данного дефекта (И БОЛЬШЕ НИКАКОГО ТЕКСТА В ОТВЕТЕ БЫТЬ НЕ ДОЛЖНО - только непосредственно реккомендация, а также все должно быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот название дефекта: "
     request_string = "Тебе на вход будет передаваться описание дефекта сварного шва. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот название дефекта: "
     responses = []
     for cls_ in tmp_classes:
@@ -148,7 +137,6 @@ def get_description_based_on_class_name(model_text_AI_name, classes):
 
 def fetch_text_AI_chat_response(model_text_AI_name, request_string):
     try:
-
         if model_text_AI_name == "llama3":
             response = olama_client.chat(model='llama3', messages=[
                 {
@@ -159,90 +147,12 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
             print("response: ", response)
             return response
         elif model_text_AI_name == "llama2":
-            # model = global_ml_models.yolov8Model.infer()
             pass
-        # и так далее
+        # etc
         else:
             raise ValueError("Unknown 'model_text_AI_name':", model_text_AI_name)
-
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-# def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
-#     try:
-#         print("[1]")
-#         if model_text_image_AI_name == "chat-gpt-4o":
-#             # Создаем запрос к API
-#             print("[1-1]")
-
-#             def encode_image(image_path):
-#                 with open(image_path, "rb") as image_file:
-#                     return base64.b64encode(image_file.read()).decode("utf-8")
-
-#             base64_image = encode_image(image_path_)
-
-#             MODEL="gpt-3.5-turbo-instruct"
-
-#             print("[1-2]")
-
-#             response = client.chat.completions.create(
-#                 model=MODEL,
-#                 messages=[
-#                     {"role": "system", "content": "You are ChatGPT"},
-#                     {"role": "user", "content": [
-#                         {"type": "text", "text": text},
-#                         {"type": "image_url", "image_url": {
-#                             "url": f"data:image/png;base64,{base64_image}"},
-#                         },
-#                     ]}
-#                 ],
-#                 max_tokens=300,
-#             )
-
-
-#             print("[2]")
-#             response_str = response.choices[0].message.content
-#             print("[3]")
-#             return response_str
-#         elif model_text_AI_name == "chat-gpt-3.5":
-#             # model = global_ml_models.yolov8Model.infer()
-#             pass
-#         # и так далее
-#         else:
-#             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
-
-#     except ValueError as ve:
-#         error_message = f"ValueError: {ve}"
-#         print(error_message)
-#         raise HTTPException(status_code=400, detail=error_message)
-#     except Exception as e:
-#         print("error_message:", print(e))
-#         raise HTTPException(status_code=400, detail=str(e))
-
-# def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
-#     try:
-#         if model_text_image_AI_name == "gemini-pro-vision":
-#             f = genai.upload_file(image_path_)
-#             response = gemai_model.generate_content([text, f])
-#             print(response)
-#             response_str = response.text
-#             print("[3]")
-#             return response_str
-#         elif model_text_image_AI_name == "chat-gpt-3.5":
-#             # model = global_ml_models.yolov8Model.infer()
-#             pass
-#         # и так далее
-#         else:
-#             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
-
-#     except ValueError as ve:
-#         error_message = f"ValueError: {ve}"
-#         print(error_message)
-#         raise HTTPException(status_code=400, detail=error_message)
-#     except Exception as e:
-#         print("error_message:", print(e))
-#         raise HTTPException(status_code=400, detail=str(e))
 
 def call_text_image_AI_api(model_text_image_AI_name: str, text: str, file_path: str):
     api_url = "http://gemini_proxy:8005"
@@ -283,7 +193,7 @@ def get_description_based_on_image(model_text_image_AI_name, image_path, result_
     return responses
 
 @app.post("/inference", response_model=InferenceResult, tags=["Inference"])
-async def infer_image(model_name: str, model_text_AI_name: str, model_text_image_AI_name: str, is_realtime: bool, file: UploadFile = File(...)):
+async def infer_image(model_name: str, model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
     try:
         image_path = f"temp/{file.filename}"
         with open(image_path, "wb") as image_file:
@@ -301,8 +211,8 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
 
             descriptions_based_on_class_names = "<no>"
             descriptions_based_on_image = "<no>"
-            if not is_realtime:
-                # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+            if run_AI_assistante:
+                descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
                 descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
             os.remove(image_path)
             results = {"model": model_name, 
@@ -326,7 +236,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/few_networks_inference", response_model=BestResult, tags=["Inference"])
-async def get_best_result(models: List[str], model_text_AI_name: str, model_text_image_AI_name: str, is_realtime: bool, file: UploadFile = File(...)):
+async def get_best_result(models: List[str], model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
     try:
         models = models[0].split(',')
         image_path = f"temp/{file.filename}"
@@ -344,7 +254,7 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
                 result_confs = process_nn_result_conf(yolo_obj)
                 descriptions_based_on_class_names = "<no>"
                 descriptions_based_on_image = "<no>"
-                if not is_realtime:
+                if run_AI_assistante:
                     descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
                     descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
                 results.append( 
@@ -359,9 +269,8 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
                      }
                 )
             elif model_name == "yolov9":
-                # model = global_ml_models.yolov8Model.infer()
                 pass
-            # и так далее
+            # etc
             else:
                 raise ValueError("Unknown 'model_name':", model_name)
         os.remove(image_path)
@@ -394,7 +303,6 @@ async def upload_labeled_image(
         with open(image_path, "wb") as image_file:
             image_file.write(file.file.read())
 
-        # Parse the labels from the string input
         labels_list = json.loads(labels)
         append_to_labels_and_classes_file(path_to_image_dir, filename, labels_list, classes, descriptions)
         
