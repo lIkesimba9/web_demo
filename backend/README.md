@@ -62,13 +62,18 @@ docker network create custom_network
 docker run -it --rm -p 8000:8000 --network custom_network -v ./models:/models --name ml-service-container yolov8-triton
 ```
 
-2. From './web_demo/backend' dir:
+2. Add '.env' file in './web_demo/backend' dir:
+```
+GOOGLE_API_KEY=<you_api_token>
+```
+
+3. From './web_demo/backend' dir:
 ```
 docker build -t ml-backend-python .
 docker run --name ml-backend-container --network custom_network -p 8004:8004 ml-backend-python
 ```
 
-3. From browser:
+4. From browser:
 ```
 http://localhost:8004/docs
 ```
