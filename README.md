@@ -25,3 +25,17 @@ model = YOLO(f"http://localhost:8000/yolov8", task="detect")
 results = model("path/to/image.jpg")
 
 ```
+
+-------------------------------------------------
+
+Build & run all services:
+
+1. Download ML model, and put to `./web_demo/yolov8-triton/models/yolov8/1/model.onnx`
+2. Create and put 'config' folder (with 'auth.txt' and 'credentials.ovpn') to './web_demo/gemini_proxy'
+
+3. Start services:
+```
+chmod +x start_services.sh
+./start_services.sh <you_google_api_token>
+
+```

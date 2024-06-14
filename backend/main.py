@@ -8,6 +8,7 @@ import torch
 from ollama import Client
 from dotenv import load_dotenv
 import google.generativeai as genai
+import requests
 
 
 load_dotenv()
@@ -219,29 +220,47 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
 #         print("error_message:", print(e))
 #         raise HTTPException(status_code=400, detail=str(e))
 
-def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
-    try:
-        if model_text_image_AI_name == "gemini-pro-vision":
-            f = genai.upload_file(image_path_)
-            response = gemai_model.generate_content([text, f])
-            print(response)
-            response_str = response.text
-            print("[3]")
-            return response_str
-        elif model_text_image_AI_name == "chat-gpt-3.5":
-            # model = global_ml_models.yolov8Model.infer()
-            pass
-        # и так далее
-        else:
-            raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
+# def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
+#     try:
+#         if model_text_image_AI_name == "gemini-pro-vision":
+#             f = genai.upload_file(image_path_)
+#             response = gemai_model.generate_content([text, f])
+#             print(response)
+#             response_str = response.text
+#             print("[3]")
+#             return response_str
+#         elif model_text_image_AI_name == "chat-gpt-3.5":
+#             # model = global_ml_models.yolov8Model.infer()
+#             pass
+#         # и так далее
+#         else:
+#             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
 
-    except ValueError as ve:
-        error_message = f"ValueError: {ve}"
-        print(error_message)
-        raise HTTPException(status_code=400, detail=error_message)
-    except Exception as e:
-        print("error_message:", print(e))
-        raise HTTPException(status_code=400, detail=str(e))
+#     except ValueError as ve:
+#         error_message = f"ValueError: {ve}"
+#         print(error_message)
+#         raise HTTPException(status_code=400, detail=error_message)
+#     except Exception as e:
+#         print("error_message:", print(e))
+#         raise HTTPException(status_code=400, detail=str(e))
+
+def call_text_image_AI_api(model_text_image_AI_name: str, text: str, file_path: str):
+    api_url = "http://gemini_proxy:8005"
+    url = f"{api_url}/text_image_AI"
+    files = {'file': open(file_path, 'rb')}
+    data = {'model_text_image_AI_name': model_text_image_AI_name, 'text': text}
+    
+    response = requests.post(url, data=data, files=files)
+    
+    if response.status_code == 200:
+        result_str = response.json()["results"]
+        print("result_str =", result_str)
+        return result_str
+    else:
+        err_str = "Error getting response from 'text_image_AI'"
+        print("Error: err_str")
+        return err_str
+        # raise Exception(f"Error {response.status_code}: {response.text}")
 
 def string_to_list(string):
     try:
@@ -259,7 +278,7 @@ def get_description_based_on_image(model_text_image_AI_name, image_path, result_
         request_string_ = request_string + "Вот название/описание дефекта: " + cls_ + ". "
         request_string_ = request_string_ + "Вот координаты дефекта на изображении в формате xyxy: " + str(coords) + "."
         print("request_string_:", request_string_)
-        response_str = fetch_text_image_AI_chat_response(model_text_image_AI_name, request_string_, image_path)
+        response_str = call_text_image_AI_api(model_text_image_AI_name, request_string_, image_path)
         responses.append(response_str)
     return responses
 
