@@ -16,8 +16,8 @@ fi
 GOOGLE_API_KEY=$1
 TELEGRAM_BOT_TOKEN=$2
 
-# Create .env file for environment variables
-echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./backend/.env
+# Create .env files for environment variables
+echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./gemini-proxy/.env
 echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" > ./telegram-bot/.env
 
 # Run Docker Compose

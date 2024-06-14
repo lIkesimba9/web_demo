@@ -3,7 +3,7 @@ version: '3.8'
 services:
   gemini_proxy:
     build:
-      context: ./gemini_proxy
+      context: ./gemini-proxy
     container_name: gemini_proxy
     privileged: true
     devices:
@@ -11,9 +11,11 @@ services:
     ports:
       - "8005:8005"
     volumes:
-      - ./gemini_proxy/config:/config
+      - ./gemini-proxy/config:/config
     networks:
       - custom_network
+    env_file:
+      - ./gemini-proxy/.env
 
   yolov8_triton:
     build:
