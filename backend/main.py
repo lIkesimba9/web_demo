@@ -5,43 +5,29 @@ from pydantic import BaseModel, conlist
 from typing import List, Dict, Any
 from ultralytics import YOLO
 import torch
-import ollama
 from ollama import Client
 from dotenv import load_dotenv
-# import openai
-# from openai import OpenAI
-import base64
-import requests
-# from gemini import Gemini
 import google.generativeai as genai
-import PIL.Image
 
 
 load_dotenv()
 
-openai_api_key = os.getenv('OPENAI_API_KEY')
+# openai_api_key = os.getenv('OPENAI_API_KEY')
 google_api_key = os.getenv('GOOGLE_API_KEY')
 
-if not openai_api_key:
-    raise ValueError("API ключ не найден в .env файле")
+# if not openai_api_key:
+#     raise ValueError("OPENAI_API_KEY ключ не найден в .env файле")
 
 if not google_api_key:
-    raise ValueError("API ключ не найден в .env файле")
-
-# client = OpenAI(api_key=openai_api_key)
-# client = OpenAI()
-
-# print("client:", client)
-
-# cookies = {}
-# client_gemini = Gemini(cookies=cookies)
+    raise ValueError("GOOGLE_API_KEY не найден в .env файле")
 
 GOOGLE_API_KEY=google_api_key
 genai.configure(api_key=GOOGLE_API_KEY)
 gemai_model = genai.GenerativeModel('gemini-pro-vision')
 
+olama_client = Client(host='http://localhost:11434')
+
 global_ml_models = None
-olama_client = None
 
 class MLModelsInit:
     def __init__(self):
@@ -52,7 +38,7 @@ class MLModelsInit:
 # YOLO Model Class
 class YOLOModel:
     def __init__(self, name: str):
-        self.model = YOLO(f"http://localhost:8000/{name}", task="detect")
+        self.model = YOLO(f"http://ml-service-container:8000/{name}", task="detect")
         self.name = name
 
     def infer(self, image_path: str):
@@ -90,18 +76,14 @@ app = FastAPI(
     version="0.0.1"
 )
 
-# Helper function to calculate average results
 def average_results(results):
     # Implement logic to calculate average results
     # pass
     return None # Как будем считать?
 
 def file_exists(directory, filename):
-    # Формируем полный путь к файлу
     file_path = os.path.join(directory, filename)
-    # Проверяем, существует ли файл по этому пути
     return os.path.isfile(file_path)
-
 
 def append_to_labels_and_classes_file(directory, filename, labels, classes, descriptions):
     labels_file = os.path.join(directory, "labels.txt")
@@ -239,20 +221,14 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
 
 def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path_):
     try:
-        print("[1]")
-        if model_text_image_AI_name == "chat-gpt-4o":
-            # Создаем запрос к API
-            # response = client.generate_content(text, image=image_path_)
-            # img = PIL.Image.open(image_path_)
+        if model_text_image_AI_name == "gemini-pro-vision":
             f = genai.upload_file(image_path_)
             response = gemai_model.generate_content([text, f])
             print(response)
             response_str = response.text
-            print("[2]")
-            # response_str = response.choices[0].message.content
             print("[3]")
             return response_str
-        elif model_text_AI_name == "chat-gpt-3.5":
+        elif model_text_image_AI_name == "chat-gpt-3.5":
             # model = global_ml_models.yolov8Model.infer()
             pass
         # и так далее
@@ -316,7 +292,7 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
                  "inference_time": yolo_obj.speed['inference'],
                  "confidence": result_confs,
                  "avarage_confidence": calculate_average(result_confs),
-                 "descriptions_text_AI_model": [], #descriptions_based_on_class_names, 
+                 "descriptions_text_AI_model": descriptions_based_on_class_names, 
                  "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                  }
         elif model_name == "yolov9":
@@ -413,7 +389,6 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    olama_client = Client(host='http://localhost:11434')
     dir1 = "images"
     dir2 = "temp"
     if not os.path.exists(dir1):

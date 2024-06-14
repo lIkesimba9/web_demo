@@ -1,6 +1,12 @@
+Install & run 'ollama' 
+```
+curl -fsSL https://ollama.com/install.sh | sh
+ollama run llama3
+```
+
 Create virtual enviroment for python
 ```
-python3.7 -m venv venv
+python3.9 -m venv venv
 ```
 
 Activate virtual enviroment for python
@@ -10,7 +16,7 @@ source venv/bin/activate
 
 Install dependencies
 ```
-pip install -r requirements.txt
+python3.9 -m pip install -r requirements.txt
 ```
 
 Run triton server in docker container
@@ -21,7 +27,7 @@ docker run -it --rm -p 8000:8000 --network custom_network -v ./models:/models --
 
 Run python backend-server OR Build docker & run it
 ```
-python3 main.py
+python3.9 main.py
 ```
 or
 ```
