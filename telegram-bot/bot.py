@@ -21,12 +21,15 @@ async def call_inference_api(file_path: str):
         with open(file_path, 'rb') as file:
             form = aiohttp.FormData()
             form.add_field('file', file, filename=os.path.basename(file_path))
-            form.add_field('model_name', 'yolov8')
-            form.add_field('model_text_AI_name', 'llama3')
-            form.add_field('model_text_image_AI_name', 'gemini-pro-vision')
-            form.add_field('is_realtime', 'false')
             
-            async with session.post(INFERENCE_API_URL, data=form) as response:
+            params = {
+                'model_name': 'yolov8',
+                'model_text_AI_name': 'llama3',
+                'model_text_image_AI_name': 'gemini-pro-vision',
+                'is_realtime': 'true'
+            }
+            
+            async with session.post(INFERENCE_API_URL, data=form, params=params) as response:
                 if response.status == 200:
                     return await response.json()
                 else:
@@ -38,10 +41,13 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo = update.message.photo[-1]
         file = await photo.get_file()
         file_path = os.path.join('temp', file.file_id + '.jpg')
-        await file.download_to_drive(file_path)
-
+        await file.download(custom_path=file_path)
+        print("[1]")
         # Вызов функции инференса
         inference_result = await call_inference_api(file_path)
+        inference_result = inference_result["results"]
+        print("[2]")
+        print('inference_result:', inference_result)
         
         # inference_result = {
         #     'result_array_box': [[50, 50, 200, 200], [150, 150, 300, 300]], 
