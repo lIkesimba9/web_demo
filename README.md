@@ -37,5 +37,4 @@ Build & run all services:
 ```
 chmod +x start_services.sh
 ./start_services.sh <you_google_api_token>
-
 ```
