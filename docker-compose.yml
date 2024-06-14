@@ -54,7 +54,7 @@ services:
     depends_on:
       - ml_backend_python
     volumes:
-      - ./temp:/app/temp
+      - ./telegram-bot/temp:/app/temp
     restart: unless-stopped
 
 networks:
