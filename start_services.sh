@@ -7,10 +7,18 @@ then
   exit 1
 fi
 
+if [ -z "$2" ]
+then
+  echo "Необходимо передать TELEGRAM_TOKEN в качестве второго аргумента."
+  exit 1
+fi
+
 GOOGLE_API_KEY=$1
+TELEGRAM_BOT_TOKEN=$2
 
 # Create .env file for environment variables
 echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" > ./backend/.env
+echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" > ./telegram-bot/.env
 
 # Install and run 'ollama'
 curl -fsSL https://ollama.com/install.sh | sh

@@ -37,7 +37,7 @@ Build & run all services:
 4. Start services:
 ```
 chmod +x start_services.sh
-./start_services.sh <you_google_api_token>
+./start_services.sh <you_google_api_token> <you_telegram_token>
 ```
 
 5. Run in browser:
