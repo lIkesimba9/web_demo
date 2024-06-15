@@ -2,3 +2,4 @@ python-telegram-bot==20.0a1
 Pillow==9.2.0
 aiohttp==3.8.1
 python-dotenv==1.0.1
+opencv-python==4.10.0.82

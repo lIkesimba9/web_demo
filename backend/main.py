@@ -71,7 +71,7 @@ app.add_middleware(
 def average_results(results):
     # Implement logic to calculate average results
     # pass
-    return None # Как будем считать?
+    return None
 
 def file_exists(directory, filename):
     file_path = os.path.join(directory, filename)
@@ -151,8 +151,8 @@ def fetch_text_AI_chat_response(model_text_AI_name, request_string):
             ])
             print("response: ", response)
             return response
-        elif model_text_AI_name == "llama2":
-            pass
+        # elif model_text_AI_name == "llama2":
+        #     pass
         # etc
         else:
             raise ValueError("Unknown 'model_text_AI_name':", model_text_AI_name)
@@ -230,8 +230,8 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
                  "descriptions_text_AI_model": descriptions_based_on_class_names, 
                  "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                  }
-        elif model_name == "yolov9":
-            pass
+        # elif model_name == "yolov9":
+        #     pass
         # etc
         else:
             raise ValueError("Unknown 'model_name':", model_name)
@@ -273,8 +273,8 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
                      "descriptions_image_and_text_AI_model": descriptions_based_on_image 
                      }
                 )
-            elif model_name == "yolov9":
-                pass
+            # elif model_name == "yolov9":
+            #     pass
             # etc
             else:
                 raise ValueError("Unknown 'model_name':", model_name)
