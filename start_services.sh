@@ -18,14 +18,15 @@ fi
 TELEGRAM_BOT_TOKEN=$1
 
 mkdir -p ./frontend/certs && cd ./frontend/certs
-
-# Генерация приватного ключа
 openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr -subj "/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyDepartmenta/CN=mydomaina.com"
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 
-# Создание запроса на сертификат (CSR) с параметрами на командной строке
-openssl req -new -key server.key -out server.csr -subj "/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyDepartment/CN=mydomain.com"
+cd ../..
 
-# Создание самоподписанного сертификата на основе CSR
+mkdir -p ./backend/certs && cd ./backend/certs
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr -subj "/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyDepartmentb/CN=mydomainb.com"
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 
 cd ../..
