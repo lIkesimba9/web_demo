@@ -11,26 +11,24 @@ from tempfile import TemporaryDirectory
 logging.basicConfig(level=logging.INFO)
 
 # TODO: move to .env or args
-BACKEND = "http://localhost:8001"
+BACKEND = os.environ.get('BACKEND', "http://localhost:8004")
+
+logging.info(f"Backend is: {BACKEND}")
 
 app = FastAPI()
 
-
-
-
 @app.get("/", response_class=HTMLResponse)
 async def index():
-
-    logging.info('Entry index')
-
     with open('web/index.html') as f:
         return Template(f.read()).render(BACKEND=BACKEND)
 
-
 @app.get("/stream", response_class=HTMLResponse)
-async def index():
-
-    logging.info('Entry index')
-
+async def stream():
     with open('web/stream.html') as f:
         return Template(f.read()).render(BACKEND=BACKEND)
+
+@app.get("/labels", response_class=HTMLResponse)
+async def labels():
+    with open('web/labels.html') as f:
+        return Template(f.read()).render(BACKEND=BACKEND)
+    
