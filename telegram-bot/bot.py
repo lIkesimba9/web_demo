@@ -67,7 +67,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("⚙️ Настройки", callback_data='settings')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Это телеграм\-бот `ML bot` проекта __VisionAI Suite__\. \n\nЧтобы начать пользоваться `ML bot` просто отправьте ему изображение для анализа\.\n\nДля гибкой конфигурирования `ML bot` перейдите\nв раздел `⚙️ Настройки`', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    # await update.message.reply_text('Это телеграм\-бот `ML bot` проекта __VisionAI Suite__\. \n\nЧтобы начать пользоваться `ML bot` просто отправьте ему изображение для анализа\.\n\nДля гибкой конфигурирования `ML bot` перейдите\nв раздел `⚙️ Настройки`', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    await update.message.reply_text('Телеграм\-бот ML bot разработан в рамках решения задачи «Определение и классификация дефектов сварных швов с помощью ИИ» на Атомик Хак 2\.0\n\n***Чтобы начать пользоваться ML bot просто отправьте ему изображение\.***\n\nДля настройки ML bot может перейти в раздел ⚙️ Настройки', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
 
 async def show_main_menu(context, chat_id, text):
     keyboard = [

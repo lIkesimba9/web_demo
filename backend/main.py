@@ -10,6 +10,14 @@ import google.generativeai as genai
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 
+classes_descriptions = {
+    'adj': "Прилегающие дефекты: брызги, прожоги от дуги",
+    'int': "Дефекты целостности: кратер, шлак, свищ, пора, прожог, включения",
+    'geo': "Дефекты геометрии: подрез, непровар, наплыв, чешуйчатость, западание, неравномерность",
+    'pro': "Дефекты постобработки: заусенец, торец, задир, забоина",
+    'non': "Дефекты невыполнения: незаполнение раковины, несплавление"
+}
+
 olama_client = Client(host='http://host.docker.internal:11434')
 global_ml_models = None
 
