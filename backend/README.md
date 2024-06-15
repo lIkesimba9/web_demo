@@ -55,25 +55,31 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama run llama3
 ```
 
-1. From './web_demo/yolov8-triton' dir
+1. From './web_demo/gemini_proxy' dir:
+```
+docker build -t gemini_proxy .
+docker network create custom_network
+docker run --name gemini_proxy --privileged --device /dev/net/tun --network custom_network -p 8005:8005 --volume ./config:/config gemini_proxy
+```
+
+2. From './web_demo/yolov8-triton' dir:
 ```
 docker build -t yolov8-triton .
-docker network create custom_network
 docker run -it --rm -p 8000:8000 --network custom_network -v ./models:/models --name ml-service-container yolov8-triton
 ```
 
-2. Add '.env' file in './web_demo/backend' dir:
+3. Add '.env' file in './web_demo/backend' dir:
 ```
 GOOGLE_API_KEY=<you_api_token>
 ```
 
-3. From './web_demo/backend' dir:
+4. From './web_demo/backend' dir:
 ```
 docker build -t ml-backend-python .
 docker run --name ml-backend-container --network custom_network -p 8004:8004 ml-backend-python
 ```
 
-4. From browser:
+5. From browser:
 ```
 http://localhost:8004/docs
 ```

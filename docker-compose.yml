@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  gemini_proxy:
+    build:
+      context: ./gemini-proxy
+    container_name: gemini_proxy
+    privileged: true
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./gemini-proxy/config:/config
+    networks:
+      - custom_network
+    env_file:
+      - ./gemini-proxy/.env
+
+  yolov8_triton:
+    build:
+      context: ./yolov8-triton
+    container_name: ml-service-container
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./yolov8-triton/models:/models
+    networks:
+      - custom_network
+    depends_on:
+      - gemini_proxy
+
+  ml_backend_python:
+    build:
+      context: ./backend
+    container_name: ml-backend-container
+    ports:
+      - "8004:8004"
+    networks:
+      - custom_network
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - yolov8_triton
+      
+  telegram_bot:
+    build:
+      context: ./telegram-bot
+    container_name: telegram-bot-container
+    networks:
+      - custom_network
+    env_file:
+      - ./telegram-bot/.env
+    depends_on:
+      - ml_backend_python
+    volumes:
+      - ./telegram-bot/temp:/app/temp
+    restart: unless-stopped
+
+networks:
+  custom_network:
+    driver: bridge
+

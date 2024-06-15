@@ -17,6 +17,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # RUN pip install -r requirements.txt
 
+RUN pip install aiofiles==23.2.1
+
 # Копируем весь проект в контейнер
 COPY . .
 
