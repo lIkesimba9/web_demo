@@ -41,26 +41,12 @@
   </head>
   <body>
     <h1>Атомик Хак 2.0 :: team9</h1>
-    Загрузить изображение: <input id="file" type="file" onchange="upload(this)">
-    <hr> <!--
-    <div>
-        <p id='image-width'>Width: </p>
-        <p id='image-height'>Height: </p>
-        <p id='image-size'>Size: </p>
-    </div> -->
-
-    <table width=100% height=100%> 
-        <tr>
-            <td class="height" style="text-align: center; vertical-align: middle;">
-
-                </div>
-            </td>
-        </tr>
-    </table>
+    <button id="startButton">Start Stream</button>
+    <hr> 
+    <video id="video" width="640" height="480" autoplay style="display: none"></video>
     <div id='container' style="position: relative;">
-        <img id="blah" />
-
-
+        <canvas id="canvas" width="640" height="480"></canvas>
+    </div>
 
 
   </body>
@@ -82,9 +68,6 @@
 
         removeElementsByClass('region');
         removeElementsByClass('conf');
-        //document.getElementById( 'image-width').innerHTML =  'Width: ' + response['info'][ 'width'];
-        //document.getElementById('image-height').innerHTML = 'Height: ' + response['info']['height'];
-        //document.getElementById(  'image-size').innerHTML =   'Size: ' + response['info'][  'size'];
 
         results = response['results']['result_array_box'];
 
@@ -135,102 +118,42 @@
 
     }
 
-    function upload(input) {
+document.getElementById('startButton').addEventListener('click', async () => {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
 
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
+    //alert(await navigator.mediaDevices)
 
-            reader.onload = function (e) {
+    // Запуск видеопотока с камеры
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+    } catch (err) {
+        alert('Error accessing camera: ' + err);
+        return;
+    }
 
+    // Функция для отправки кадра на сервер и получения результатов
+    async function sendFrame() {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg');
 
-                //Initiate the JavaScript Image object.
-                var image = new Image();
+        let file = null;
 
-                //Set the Base64 string return from FileReader as source.
-                image.src = e.target.result;
-
-                //Validate the File Height and Width.
-                image.onload = function () {
-                    var height = this.height;
-                    var width = this.width;
-
-                    img = document.getElementById('blah');
-
-                    img.setAttribute('src', e.target.result);
-                    img.setAttribute('width', '800vw');
-
-                    document.scale_w = img.width  / width;
-                    document.scale_h = img.height / height;
-
-                    console.log(document.scale_w, document.scale_h);
-         
-                    /*
-                    response = {
-  "results": {
-    "model": "yolov8",
-    "result_array_box": [
-      [
-        4809,
-        2954,
-        5119,
-        3299
-      ],
-      [
-        389,
-        3168,
-        1099,
-        3863
-      ],
-      [
-        2,
-        1635,
-        252,
-        2204
-      ],
-      [
-        4296,
-        1149,
-        4607,
-        1446
-      ]
-    ],
-    "classes": [
-      "class0",
-      "class0",
-      "class0",
-      "class0"
-    ],
-    "inference_time": 119.73762512207031,
-    "confidence": [
-      0.9040091037750244,
-      0.8580820560455322,
-      0.27855193614959717,
-      0.266004741191864
-    ],
-    "avarage_confidence": 0.5766619592905045,
-    "descriptions_text_AI_model": "<no>",
-    "descriptions_image_and_text_AI_model": "<no>"
-  }
-};
-onResponse(response);
-*/
-                }
-
-
-
-                //document.getElementById('blah').setAttribute('height', '75%');
-            };
-
-            reader.readAsDataURL(input.files[0]);
+        canvas.toBlob((blob) => {
+            file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
 
             const xhr = new XMLHttpRequest();
 
             const fileData = new FormData();
-            fileData.append("file", input.files[0]);
+            fileData.append("file", file);
 
             xhr.onload = function (r) {
 
                 response = JSON.parse(xhr.responseText);
+
+                console.log(response);
 
                 //if ( response.success )
                     onResponse(response);
@@ -241,9 +164,33 @@ onResponse(response);
 
             xhr.open("POST", BACKEND + "/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
             xhr.send(fileData);
-        }
 
+            }, 'image/jpeg');
+
+        console.log('sendFrame')
+
+        requestAnimationFrame(sendFrame);
     }
+
+    // Функция для отображения ограничивающих рамок
+    function drawBoundingBoxes(results) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        results.result_array_box.forEach((box, index) => {
+            context.strokeStyle = 'red';
+            context.lineWidth = 2;
+            context.strokeRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
+
+            context.fillStyle = 'red';
+            context.font = '20px Arial';
+            context.fillText(results.classes[index], box[0], box[1] - 10);
+        });
+    }
+
+    // Начать отправку кадров
+    requestAnimationFrame(sendFrame);
+});
 
     
 
