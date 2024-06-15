@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Annotation Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        button, input[type="file"] {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover, input[type="file"]:hover {
+            background-color: #0056b3;
+        }
+        #imageCanvas {
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        #modalContent {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #modalContent label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        #modalContent input[type="text"], #modalContent input[type="color"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #saveAnnotationButton {
+            background-color: #28a745;
+        }
+        #saveAnnotationButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Атомик Хак 2.0 :: team9</h1>
+    <div id="controls">
+        <input type="file" id="fileInput">
+        <button id="addAnnotationButton">Добавить разметку элемента на изображении</button>
+        <button id="finishAnnotationButton">Завершить разметку изображения</button>
+    </div>
+    <hr>
+    <canvas id="imageCanvas" style="width: 75%"></canvas>
+
+    <div id="modal">
+        <div id="modalContent">
+            <label for="classInput">Класс дефекта сварного шва:</label>
+            <input type="text" id="classInput">
+            <label for="descriptionInput">Дополнительная информация/описание:</label>
+            <input type="text" id="descriptionInput">
+            <label for="colorPicker">Цвет прямоугольника:</label>
+            <input type="color" id="colorPicker" value="#ff0000">
+            <button id="saveAnnotationButton">Ok</button>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const ctx = imageCanvas.getContext('2d');
+        const addAnnotationButton = document.getElementById('addAnnotationButton');
+        const finishAnnotationButton = document.getElementById('finishAnnotationButton');
+        const modal = document.getElementById('modal');
+        const saveAnnotationButton = document.getElementById('saveAnnotationButton');
+        const classInput = document.getElementById('classInput');
+        const descriptionInput = document.getElementById('descriptionInput');
+        const colorPicker = document.getElementById('colorPicker');
+
+        let image = new Image();
+        let startX, startY, endX, endY;
+        let annotations = [];
+        let isDrawing = false;
+
+        fileInput.addEventListener('change', handleImageUpload);
+        addAnnotationButton.addEventListener('click', startAnnotation);
+        finishAnnotationButton.addEventListener('click', finishAnnotation);
+        saveAnnotationButton.addEventListener('click', saveAnnotation);
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                image.src = e.target.result;
+                image.onload = function() {
+                    imageCanvas.width = image.width;
+                    imageCanvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function startAnnotation() {
+            imageCanvas.addEventListener('mousedown', startDrawing);
+            imageCanvas.addEventListener('mousemove', draw);
+            imageCanvas.addEventListener('mouseup', endDrawing);
+        }
+
+        function startDrawing(event) {
+            isDrawing = true;
+            startX = event.offsetX;
+            startY = event.offsetY;
+        }
+
+        function draw(event) {
+            if (!isDrawing) return;
+            endX = event.offsetX;
+            endY = event.offsetY;
+            ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+            ctx.drawImage(image, 0, 0);
+            annotations.forEach(annotation => {
+                drawAnnotation(annotation);
+            });
+            ctx.beginPath();
+            ctx.rect(startX, startY, endX - startX, endY - startY);
+            ctx.strokeStyle = colorPicker.value;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function endDrawing() {
+            isDrawing = false;
+            modal.style.display = 'block';
+        }
+
+        function saveAnnotation() {
+            annotations.push({
+                box: [startX, startY, endX, endY],
+                class: classInput.value,
+                description: descriptionInput.value,
+                color: colorPicker.value
+            });
+            modal.style.display = 'none';
+            classInput.value = '';
+            descriptionInput.value = '';
+            redrawImage();
+        }
+
+        function drawAnnotation(annotation) {
+            const [x1, y1, x2, y2] = annotation.box;
+            const width = x2 - x1;
+            const height = y2 - y1;
+            ctx.beginPath();
+            ctx.rect(x1, y1, width, height);
+            ctx.strokeStyle = annotation.color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = annotation.color;
+            ctx.font = '14px Arial';
+            ctx.fillText(`Класс: ${annotation.class}`, x1, y1 - 25);
+            ctx.fillText(`Описание: ${annotation.description}`, x1, y1 - 10);
+        }
+
+        function finishAnnotation() {
+            const labels = annotations.map(a => a.box);
+            const classes = annotations.map(a => a.class);
+            const descriptions = annotations.map(a => a.description);
+
+            console.log('labels =', labels);
+            console.log('classes =', classes);
+            console.log('descriptions =', descriptions);
+
+            imageCanvas.toBlob((blob) => {
+            file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
+
+            const xhr = new XMLHttpRequest();
+
+            const fileData = new FormData();
+            fileData.append("file", file);
+
+            fileData.append('to_train', 'false')
+            fileData.append('labels', JSON.stringify(labels))
+            fileData.append('classes', JSON.stringify(classes))
+            fileData.append('descriptions', JSON.stringify(descriptions))            
+
+            xhr.onload = function (r) {
+
+                response = JSON.parse(xhr.responseText);
+
+                console.log(response);
+
+                alert('Ok')
+                //if ( response.success )
+                //    onResponse(response);
+                //else
+                //   alert(response.message);
+
+            };
+
+            xhr.open("POST", "{{ BACKEND }}/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
+            xhr.send(fileData);
+
+            }, 'image/jpeg');
+
+            //debugger;
+
+            //annotations = [];
+            //ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+        }
+
+        function redrawImage() {
+            ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+            ctx.drawImage(image, 0, 0);
+            annotations.forEach(annotation => {
+                drawAnnotation(annotation);
+            });
+        }
+    </script>
+</body>
+</html>
+
