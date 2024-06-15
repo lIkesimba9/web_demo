@@ -10,6 +10,14 @@ import google.generativeai as genai
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 
+classes_idx = {
+    0 :'adj',
+    1: 'int',
+    2: 'geo',
+    3: 'pro',
+    4: 'non'
+}
+
 classes_descriptions = {
     'adj': "Прилегающие дефекты: брызги, прожоги от дуги",
     'int': "Дефекты целостности: кратер, шлак, свищ, пора, прожог, включения",
@@ -120,9 +128,9 @@ def process_nn_result_conf(yolo_obj):
 def process_nn_result_class_names(yolo_obj):
     result_array = []
     classes = yolo_obj.boxes.cls.tolist()
-    names = yolo_obj.names
+    # names = yolo_obj.names
     for i, class_ in enumerate(classes):
-        class_name = names[int(class_)]
+        class_name = classes_idx[int(class_)]
         result_array.append(class_name)
     return result_array
 
