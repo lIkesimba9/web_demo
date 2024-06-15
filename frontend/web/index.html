@@ -9,9 +9,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Demo</title>
+    <title>Атомик Хак 2.0 :: team9</title>
 
     <style>
+
+        .conf {
+            color: black;
+            background: white;
+            position: absolute;
+        }
 
         .region {
             border: 2px solid yellow;
@@ -23,51 +29,110 @@
             position: absolute;
         }
 
+        .centered {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
     </style>
 
   </head>
   <body>
-    <input type="file" onchange="upload(this);" />
-    <hr>
+    <h1>Атомик Хак 2.0 :: team9</h1>
+    Загрузить изображение: <input id="file" type="file" onchange="upload(this)">
+    <hr> <!--
     <div>
         <p id='image-width'>Width: </p>
         <p id='image-height'>Height: </p>
         <p id='image-size'>Size: </p>
-    </div>
+    </div> -->
+
+    <table width=100% height=100%> 
+        <tr>
+            <td class="height" style="text-align: center; vertical-align: middle;">
+
+                </div>
+            </td>
+        </tr>
+    </table>
     <div id='container' style="position: relative;">
         <img id="blah" />
 
+
+
+
   </body>
+
   <script>
     BACKEND = '{{ BACKEND }}';
 
     console.log('BACKEND is: ' + BACKEND);
 
+    function removeElementsByClass(className){
+        const elements = document.getElementsByClassName(className);
+        while(elements.length > 0){
+            elements[0].parentNode.removeChild(elements[0]);
+        }
+    }
+
     function onResponse(response)
     {
 
-        document.getElementById( 'image-width').innerHTML =  'Width: ' + response['info'][ 'width'];
-        document.getElementById('image-height').innerHTML = 'Height: ' + response['info']['height'];
-        document.getElementById(  'image-size').innerHTML =   'Size: ' + response['info'][  'size'];
+        removeElementsByClass('region');
+        removeElementsByClass('conf');
+        //document.getElementById( 'image-width').innerHTML =  'Width: ' + response['info'][ 'width'];
+        //document.getElementById('image-height').innerHTML = 'Height: ' + response['info']['height'];
+        //document.getElementById(  'image-size').innerHTML =   'Size: ' + response['info'][  'size'];
 
-        regions = response['regions'];
+        results = response['results']['result_array_box'];
 
         container = document.getElementById('container');
 
-        regions.forEach((region) => {
-            console.log(region);
-
+        for(i=0;i<results.length;i++)
+        {
             el = document.createElement('div');
 
             el.setAttribute('class', 'region')
 
-            el.style.left   = region.x + 'px';
-            el.style.top    = region.y + 'px';
-            el.style.width  = region.w + 'px';
-            el.style.height = region.h + 'px';
+            l = Math.round(response['results']['result_array_box'][i][0]*document.scale_w);
+            t = Math.round(response['results']['result_array_box'][i][1]*document.scale_h); 
+            w = Math.round(response['results']['result_array_box'][i][2]*document.scale_w) - l;
+            h = Math.round(response['results']['result_array_box'][i][3]*document.scale_h) - t;
+
+            console.log(l, t, w, h);
+
+            el.style.left   = l + 'px';
+            el.style.top    = t + 'px';
+            el.style.width  = w + 'px';
+            el.style.height = h + 'px';
 
             container.appendChild(el);
-        });
+
+            conf = document.createElement('span');
+
+            conf.setAttribute('class', 'conf')
+
+            conf.innerText = 'Conf: ' + parseFloat(response['results']['confidence'][i]).toFixed(4);
+
+            conf.style.left   = l + 'px';
+            conf.style.top    = (t - 25) + 'px';
+
+            container.appendChild(conf);
+
+            cls = document.createElement('span');
+
+            cls.setAttribute('class', 'conf')
+
+            cls.innerText = 'Class: ' + response['results']['classes'][i];
+
+            cls.style.left = (l + w + 5) + 'px';
+            cls.style.top  = t + 'px';
+
+            container.appendChild(cls);
+        }
+
     }
 
     function upload(input) {
@@ -76,8 +141,83 @@
             var reader = new FileReader();
 
             reader.onload = function (e) {
-                document.getElementById('blah').setAttribute('src', e.target.result);
-                //document.getElementById('blah').setAttribute('width', '75%');
+
+
+                //Initiate the JavaScript Image object.
+                var image = new Image();
+
+                //Set the Base64 string return from FileReader as source.
+                image.src = e.target.result;
+
+                //Validate the File Height and Width.
+                image.onload = function () {
+                    var height = this.height;
+                    var width = this.width;
+
+                    img = document.getElementById('blah');
+
+                    img.setAttribute('src', e.target.result);
+                    img.setAttribute('width', '800vw');
+
+                    document.scale_w = img.width  / width;
+                    document.scale_h = img.height / height;
+
+                    console.log(document.scale_w, document.scale_h);
+         
+                    /*
+                    response = {
+  "results": {
+    "model": "yolov8",
+    "result_array_box": [
+      [
+        4809,
+        2954,
+        5119,
+        3299
+      ],
+      [
+        389,
+        3168,
+        1099,
+        3863
+      ],
+      [
+        2,
+        1635,
+        252,
+        2204
+      ],
+      [
+        4296,
+        1149,
+        4607,
+        1446
+      ]
+    ],
+    "classes": [
+      "class0",
+      "class0",
+      "class0",
+      "class0"
+    ],
+    "inference_time": 119.73762512207031,
+    "confidence": [
+      0.9040091037750244,
+      0.8580820560455322,
+      0.27855193614959717,
+      0.266004741191864
+    ],
+    "avarage_confidence": 0.5766619592905045,
+    "descriptions_text_AI_model": "<no>",
+    "descriptions_image_and_text_AI_model": "<no>"
+  }
+};
+onResponse(response);
+*/
+                }
+
+
+
                 //document.getElementById('blah').setAttribute('height', '75%');
             };
 
@@ -88,19 +228,18 @@
             const fileData = new FormData();
             fileData.append("file", input.files[0]);
 
-
             xhr.onload = function (r) {
 
                 response = JSON.parse(xhr.responseText);
 
-                if ( response.success )
+                //if ( response.success )
                     onResponse(response);
-                else
-                    alert(response.message);
+                //else
+                //   alert(response.message);
 
             };
 
-            xhr.open("POST", BACKEND + "/process", true);
+            xhr.open("POST", BACKEND + "/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
             xhr.send(fileData);
         }
 

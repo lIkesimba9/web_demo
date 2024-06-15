@@ -1,7 +1,6 @@
 
 
 import logging
-import cv2
 import os
 import random
 from fastapi import FastAPI, UploadFile, File
@@ -28,7 +27,6 @@ async def index():
     content = index_template.render(BACKEND=BACKEND)
  
     return content
-
 def sizeof_fmt(num, suffix="B"):
     for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
         if abs(num) < 1024.0:
