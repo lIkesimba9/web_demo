@@ -16,6 +16,7 @@ services:
       - custom_network
     env_file:
       - ./gemini-proxy/.env
+    restart: unless-stopped
 
   yolov8_triton:
     build:
@@ -29,6 +30,7 @@ services:
       - custom_network
     depends_on:
       - gemini_proxy
+    restart: unless-stopped
 
   ml_backend_python:
     build:
@@ -42,6 +44,7 @@ services:
       - ./backend/.env
     depends_on:
       - yolov8_triton
+    restart: unless-stopped
       
   telegram_bot:
     build:
@@ -56,6 +59,21 @@ services:
     volumes:
       - ./telegram-bot/temp:/app/temp
     restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend-container
+    ports:
+      - "8010:8010"
+    networks:
+      - custom_network
+    volumes:
+      - ./frontend/certs:/certs
+    env_file:
+      - ./.env
+    depends_on:
+      - ml_backend_python
 
 networks:
   custom_network:

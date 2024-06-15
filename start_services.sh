@@ -17,6 +17,19 @@ fi
 
 TELEGRAM_BOT_TOKEN=$1
 
+mkdir -p ./frontend/certs && cd ./frontend/certs
+
+# Генерация приватного ключа
+openssl genrsa -out server.key 2048
+
+# Создание запроса на сертификат (CSR) с параметрами на командной строке
+openssl req -new -key server.key -out server.csr -subj "/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyDepartment/CN=mydomain.com"
+
+# Создание самоподписанного сертификата на основе CSR
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+cd ../..
+
 # Проверка наличия третьего аргумента и его значения
 if [ "$3" == "RUN_OLLAMA" ]; then
   echo "Запуск установки и запуска ollama"

@@ -2,3 +2,4 @@ setting_triton.ipynb
 __pycache__
 frontend/venv
 backend/models/*
+.env

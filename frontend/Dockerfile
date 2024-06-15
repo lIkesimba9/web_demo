@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Указываем команду для запуска приложения
-ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010"]
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010", "--ssl-keyfile", "/certs/server.key", "--ssl-certfile", "/certs/server.crt"]

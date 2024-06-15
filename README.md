@@ -9,6 +9,7 @@ Optionaly: ```RUN_OLLAMA```
 Optionaly: ```<you_google_api_token>``` (from ```https://aistudio.google.com/app/apikey```)
 Required: ```<you_telegram_bot_token>```
 
+Required: openssl
 ```
 chmod +x start_services.sh
 ```
