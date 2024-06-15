@@ -9,6 +9,8 @@ from ollama import Client
 import google.generativeai as genai
 import requests
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 classes_idx = {
     0 :'adj',
@@ -28,6 +30,8 @@ classes_descriptions = {
 
 olama_client = Client(host='http://host.docker.internal:11434')
 global_ml_models = None
+
+executor = ThreadPoolExecutor()
 
 class MLModelsInit:
     def __init__(self):
@@ -225,17 +229,22 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
         results = None
         if model_name == "yolov8":
             model = global_ml_models.yolov8Model
-            results_ = model.infer(image_path)
+            # results_ = model.infer(image_path)
+            results_ = await asyncio.get_event_loop().run_in_executor(executor, model.infer, image_path)
             yolo_obj = results_[0]
             result_array_box = process_nn_results_coordinates(yolo_obj)
             classes = process_nn_result_class_names(yolo_obj)
             result_confs = process_nn_result_conf(yolo_obj)
 
-            descriptions_based_on_class_names = "<no>"
-            descriptions_based_on_image = "<no>"
+            descriptions_based_on_class_names = "No"
+            descriptions_based_on_image = "No"
             if run_AI_assistante:
-                descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
-                descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+                # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+                # descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+                descriptions_based_on_class_names = await asyncio.get_event_loop().run_in_executor(
+                    executor, get_description_based_on_class_name, model_text_AI_name, classes)
+                descriptions_based_on_image = await asyncio.get_event_loop().run_in_executor(
+                    executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
             os.remove(image_path)
             results = {"model": model_name, 
                 "result_array_box": result_array_box,
@@ -271,7 +280,8 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
         for model_name in models:
             if model_name == "yolov8":
                 model = global_ml_models.yolov8Model
-                results_ = model.infer(image_path)
+                # results_ = model.infer(image_path)
+                results_ = await asyncio.get_event_loop().run_in_executor(executor, model.infer, image_path)
                 yolo_obj = results_[0]
                 result_array_box = process_nn_results_coordinates(yolo_obj)
                 classes = process_nn_result_class_names(yolo_obj)
@@ -279,8 +289,12 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
                 descriptions_based_on_class_names = "<no>"
                 descriptions_based_on_image = "<no>"
                 if run_AI_assistante:
-                    descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
-                    descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+                    # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+                    # descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+                    descriptions_based_on_class_names = await asyncio.get_event_loop().run_in_executor(
+                        executor, get_description_based_on_class_name, model_text_AI_name, classes)
+                    descriptions_based_on_image = await asyncio.get_event_loop().run_in_executor(
+                        executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
                 results.append( 
                     {"model": model_name,
                      "result_array_box": result_array_box,

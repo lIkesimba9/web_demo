@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from telegram.constants import ParseMode
 from dotenv import load_dotenv
 import cv2
+import asyncio
 
 load_dotenv()
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -39,7 +40,7 @@ def get_color_code(color_name):
 # Начальные параметры
 default_params = {
     'model_name': 'yolov8',
-    'model_text_AI_name': 'llama3',
+    'model_text_AI_name': 'gpt3',
     'model_text_image_AI_name': 'gemini-pro-vision',
     'run_AI_assistante': 'false',
     'confidence_threshold': 0.1,
@@ -355,48 +356,52 @@ async def call_inference_api(file_path: str, params: dict):
                     raise Exception(f"API call failed with status {response.status}: {response_text}")
 
 async def process_image_and_send(file_path, params, file_id, update, context):
-    inference_result = await call_inference_api(file_path, params)
-    inference_result = inference_result["results"]
+    try:
+        inference_result = await call_inference_api(file_path, params)
+        inference_result = inference_result["results"]
 
-    img = cv2.imread(file_path)
+        img = cv2.imread(file_path)
 
-    for box, cls_, conf in zip(inference_result['result_array_box'], inference_result['classes'], inference_result['confidence']):
-        if conf >= params['confidence_threshold']:
-            line_color_code = None
-            if params['use_diff_color_for_diff_classes'] == "true":
-                line_color_code = classes_colors[cls_]
-            else:
-                line_color_code = get_color_code(params['line_color'])
-            img = cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), line_color_code, int(params['line_thickness']))
-            font_color_code_class = get_color_code(params['class_font_color'])
-            font_color_code_conf = get_color_code(params['confidence_font_color'])
-            font_scale_class = params['class_font_scale']
-            font_scale_conf = params['confidence_font_scale']
-            if params['show_box_info'] == "true":
-                cv2.putText(img, cls_, (box[0], box[1]-15), cv2.FONT_HERSHEY_SIMPLEX, float(font_scale_class), font_color_code_class, int(params['line_thickness']))
-                cv2.putText(img, f"{conf:.2f}", (box[2], box[1]-15), cv2.FONT_HERSHEY_SIMPLEX, float(font_scale_conf), font_color_code_conf, int(params['line_thickness']))
+        for box, cls_, conf in zip(inference_result['result_array_box'], inference_result['classes'], inference_result['confidence']):
+            if conf >= params['confidence_threshold']:
+                line_color_code = None
+                if params['use_diff_color_for_diff_classes'] == "true":
+                    line_color_code = classes_colors[cls_]
+                else:
+                    line_color_code = get_color_code(params['line_color'])
+                img = cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), line_color_code, int(params['line_thickness']))
+                font_color_code_class = get_color_code(params['class_font_color'])
+                font_color_code_conf = get_color_code(params['confidence_font_color'])
+                font_scale_class = params['class_font_scale']
+                font_scale_conf = params['confidence_font_scale']
+                if params['show_box_info'] == "true":
+                    cv2.putText(img, cls_, (box[0], box[1]-15), cv2.FONT_HERSHEY_SIMPLEX, float(font_scale_class), font_color_code_class, int(params['line_thickness']))
+                    cv2.putText(img, f"{conf:.2f}", (box[2], box[1]-15), cv2.FONT_HERSHEY_SIMPLEX, float(font_scale_conf), font_color_code_conf, int(params['line_thickness']))
 
-    result_image_path = os.path.join('temp', 'result_' + file_id + '.jpg')
-    cv2.imwrite(result_image_path, img)
+        result_image_path = os.path.join('temp', 'result_' + file_id + '.jpg')
+        cv2.imwrite(result_image_path, img)
 
-    if not os.path.exists(result_image_path):
-        await update.message.reply_text('Не удалось создать файл с результатом.')
-        return
+        if not os.path.exists(result_image_path):
+            await update.message.reply_text('Не удалось создать файл с результатом.')
+            return
 
-    caption = (
-        f"***Average confidence:***  `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
-        f"***Inference time:***            `{'{:.3f} ms'.format(inference_result['inference_time'])}`\n"
-    )
+        caption = (
+            f"***Average confidence:***  `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
+            f"***Inference time:***           `{'{:.3f} ms'.format(inference_result['inference_time'])}`\n"
+        )
 
-    AI_assistents_messages = (
-        f"***Descriptions Text AI Model:***\n`{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n\n"
-        f"***Descriptions Image and Text AI Model:***\n`{'{}'.format(inference_result['descriptions_image_and_text_AI_model'])}`"
-    )
+        AI_assistents_messages = (
+            f"***Descriptions Text AI Model:***\n`{'{}'.format(inference_result['descriptions_text_AI_model'])}`\n\n"
+            f"***Descriptions Image and Text AI Model:***\n`{'{}'.format(inference_result['descriptions_image_and_text_AI_model'])}`"
+        )
 
-    with open(result_image_path, 'rb') as result_image_file:
-        await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)
-    await context.bot.send_message(chat_id=update.message.chat_id, text=AI_assistents_messages, parse_mode=ParseMode.MARKDOWN_V2)
-    await show_main_menu(context, update.message.chat_id, "_Можете загружать очередное изображение_")
+        with open(result_image_path, 'rb') as result_image_file:
+            await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)
+        await context.bot.send_message(chat_id=update.message.chat_id, text=AI_assistents_messages, parse_mode=ParseMode.MARKDOWN_V2)
+        await show_main_menu(context, update.message.chat_id, "_Можете загружать очередное изображение_")
+    except Exception as e:
+        await update.message.reply_text(f'Ошибка: {e}')
+        await show_main_menu(context, update.message.chat_id, "_Можете загружать очередное изображение_")
 
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -413,7 +418,7 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = await photo.get_file()
         file_path = os.path.join('temp', file.file_id + '.jpg')
         await file.download(custom_path=file_path)
-        await process_image_and_send(file_path, params, file.file_id, update, context)
+        asyncio.create_task(process_image_and_send(file_path, params, file.file_id, update, context))
 
     except Exception as e:
         await update.message.reply_text(f'Ошибка: {e}')
@@ -438,7 +443,7 @@ async def handle_image_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = await document.get_file()
         file_path = os.path.join('temp', file.file_id + os.path.splitext(document.file_name)[1])
         await file.download(custom_path=file_path)
-        await process_image_and_send(file_path, params, file.file_id, update, context)
+        asyncio.create_task(process_image_and_send(file_path, params, file.file_id, update, context))
         
     except Exception as e:
         await update.message.reply_text(f'Ошибка: {e}')
