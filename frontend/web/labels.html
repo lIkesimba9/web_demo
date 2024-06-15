@@ -230,7 +230,7 @@
 
             };
 
-            xhr.open("POST", "{{ BACKEND }}/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
+            xhr.open("POST", "{{ BACKEND }}/upload_labeled_image?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
             xhr.send(fileData);
 
             }, 'image/jpeg');
