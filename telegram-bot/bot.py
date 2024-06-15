@@ -422,11 +422,6 @@ async def handle_image_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.message.chat_id, text=AI_assistents_messages, parse_mode=ParseMode.MARKDOWN_V2)
         await show_main_menu(context, update.message.chat_id, "Выберите дальнейшее действие")
 
-        with open(result_image_path, 'rb') as result_image_file:
-            await update.message.reply_photo(photo=result_image_file, caption=caption, parse_mode=ParseMode.MARKDOWN_V2)
-
-        await show_main_menu(context, update.message.chat_id, "Выберите дальнейшее действие")
-
     except Exception as e:
         await update.message.reply_text(f'Ошибка: {e}')
 
