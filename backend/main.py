@@ -133,12 +133,10 @@ def calculate_average(arr):
 
 def get_description_based_on_class_name(model_text_AI_name, classes):
     try:
-        # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
-        # tmp_classes = ["Слишком мало металла"]
         request_string = "Тебе на вход будет передаваться описание дефекта сварного шва. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком. Вот название дефекта: "
         responses = []
         for cls_ in classes:
-            request_string_ = request_string + cls_
+            request_string_ = request_string + classes_descriptions[cls_]
             response = fetch_text_AI_chat_response(model_text_AI_name, request_string_)
             response_str = response["message"]["content"]
             responses.append(response_str)
@@ -195,11 +193,10 @@ def string_to_list(string):
         return f"Ошибка при декодировании JSON: {e}"
 
 def get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes):
-    # tmp_classes = ["Слишком мало металла", "Слишком много металла", "Слишком перывисто варили", "Есть недоваренные края шва"]
     request_string = "Тебе на вход будет передаваться описания дефекта сварного шва. Координаты обнаруженного дефекта на изображении и само изображение. Сгенерируй рекомендацию по устранению данного дефекта (ответ должен быть только на русском языке). Эти рекомендации могут носить как общий характер, так и углубленный с пояснением причин возникнованения данных дефектов и ошибок, допущенных сварщиком."
     responses = []
     for cls_, coords in zip(classes,result_array_box):
-        request_string_ = request_string + "Вот название/описание дефекта: " + cls_ + ". "
+        request_string_ = request_string + "Вот название/описание дефекта: " + classes_descriptions[cls_] + ". "
         request_string_ = request_string_ + "Вот координаты дефекта на изображении в формате xyxy: " + str(coords) + "."
         print("request_string_:", request_string_)
         response_str = call_text_image_AI_api(model_text_image_AI_name, request_string_, image_path)

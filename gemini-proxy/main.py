@@ -25,8 +25,8 @@ def fetch_text_image_AI_chat_response(model_text_image_AI_name, text, image_path
             print(response)
             response_str = response.text
             return response_str
-        elif model_text_image_AI_name == "chat-gpt-3.5":
-            pass
+        # elif model_text_image_AI_name == "chat-gpt-3.5":
+        #     pass
         # etc
         else:
             raise ValueError("Unknown 'model_text_image_AI_name':", model_text_image_AI_name)
