@@ -137,18 +137,25 @@
             imageCanvas.addEventListener('mousedown', startDrawing);
             imageCanvas.addEventListener('mousemove', draw);
             imageCanvas.addEventListener('mouseup', endDrawing);
+
+            console.log(image.width, image.height, imageCanvas.width, imageCanvas.height)
+
+            document.scale_w = image.width  / imageCanvas.clientWidth;
+            document.scale_h = image.height / imageCanvas.clientHeight;
+
+            console.log(document.scale_w, document.scale_h);
         }
 
         function startDrawing(event) {
             isDrawing = true;
-            startX = event.offsetX;
-            startY = event.offsetY;
+            startX = event.offsetX * document.scale_w;
+            startY = event.offsetY * document.scale_h;
         }
 
         function draw(event) {
             if (!isDrawing) return;
-            endX = event.offsetX;
-            endY = event.offsetY;
+            endX = event.offsetX * document.scale_w;
+            endY = event.offsetY * document.scale_h;
             ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
             ctx.drawImage(image, 0, 0);
             annotations.forEach(annotation => {
@@ -157,7 +164,7 @@
             ctx.beginPath();
             ctx.rect(startX, startY, endX - startX, endY - startY);
             ctx.strokeStyle = colorPicker.value;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 24;
             ctx.stroke();
         }
 
@@ -180,16 +187,16 @@
         }
 
         function drawAnnotation(annotation) {
-            const [x1, y1, x2, y2] = annotation.box;
+            let [x1, y1, x2, y2] = annotation.box;
             const width = x2 - x1;
             const height = y2 - y1;
             ctx.beginPath();
             ctx.rect(x1, y1, width, height);
             ctx.strokeStyle = annotation.color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 24;
             ctx.stroke();
             ctx.fillStyle = annotation.color;
-            ctx.font = '14px Arial';
+            ctx.font = '178px Arial';
             ctx.fillText(`Класс: ${annotation.class}`, x1, y1 - 25);
             ctx.fillText(`Описание: ${annotation.description}`, x1, y1 - 10);
         }
