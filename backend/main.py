@@ -213,6 +213,9 @@ def get_description_based_on_image(model_text_image_AI_name, image_path, result_
 
 @app.post("/inference", response_model=InferenceResult, tags=["Inference"])
 async def infer_image(model_name: str, model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
+    """
+    API для детекции и классификации изображений с отображением времени "инференса", среднего значения confidence, а также возможностью получения пояснений от LLM моделей (text/text+image)
+    """
     try:
         image_path = f"temp/{file.filename}"
         with open(image_path, "wb") as image_file:
@@ -255,6 +258,9 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
 
 @app.post("/few_networks_inference", response_model=BestResult, tags=["Inference"])
 async def get_best_result(models: List[str], model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
+    """
+    API для выполнения инференса на нескольких нейронных сетях, с выбиром лучших решений по качеству и по скорости инференса анализа
+    """
     try:
         models = models[0].split(',')
         image_path = f"temp/{file.filename}"
@@ -311,6 +317,9 @@ async def upload_labeled_image(
     descriptions: str = Form(...),
     file: UploadFile = File(...)
 ):
+    """
+    API для добавления новых изображений в выборку по мере их появления. При выявлении некорректных детекций и классификаций пользователи могут самостоятельно размечать изображения и добавлять пояснения.
+    """
     try:
         filename = file.filename
         path_to_image_dir = "images"
