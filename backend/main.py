@@ -10,6 +10,7 @@ import google.generativeai as genai
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
+import aiofiles
 from concurrent.futures import ThreadPoolExecutor
 
 classes_idx = {
@@ -215,6 +216,17 @@ def get_description_based_on_image(model_text_image_AI_name, image_path, result_
         responses.append(response_str)
     return responses
 
+async def save_upload_file(upload_file: UploadFile, destination: str):
+    async with aiofiles.open(destination, 'wb') as out_file:
+        while content := await upload_file.read(1024):
+            await out_file.write(content)
+
+async def remove_file(filepath: str):
+    try:
+        os.remove(filepath)
+    except Exception as e:
+        print(f"Error removing file {filepath}: {e}")
+
 @app.post("/inference", response_model=InferenceResult, tags=["Inference"])
 async def infer_image(model_name: str, model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
     """
@@ -222,42 +234,41 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
     """
     try:
         image_path = f"temp/{file.filename}"
-        with open(image_path, "wb") as image_file:
-            image_file.write(file.file.read())
+        await save_upload_file(file, image_path)
         
         model = None
         results = None
         if model_name == "yolov8":
+            event_loop = asyncio.get_event_loop()
             model = global_ml_models.yolov8Model
-            # results_ = model.infer(image_path)
-            results_ = await asyncio.get_event_loop().run_in_executor(executor, model.infer, image_path)
+            results_ = model.infer(image_path)
+            # results_ = await event_loop.run_in_executor(executor, model.infer, image_path)
             yolo_obj = results_[0]
             result_array_box = process_nn_results_coordinates(yolo_obj)
             classes = process_nn_result_class_names(yolo_obj)
             result_confs = process_nn_result_conf(yolo_obj)
 
-            descriptions_based_on_class_names = "No"
-            descriptions_based_on_image = "No"
+            descriptions_based_on_class_names = "<no>"
+            descriptions_based_on_image = "<no>"
             if run_AI_assistante:
+                descriptions_based_on_class_names = await event_loop.run_in_executor(
+                    executor, get_description_based_on_class_name, model_text_AI_name, classes)
+                descriptions_based_on_image = await event_loop.run_in_executor(
+                    executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
                 # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
                 # descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
-                descriptions_based_on_class_names = await asyncio.get_event_loop().run_in_executor(
-                    executor, get_description_based_on_class_name, model_text_AI_name, classes)
-                descriptions_based_on_image = await asyncio.get_event_loop().run_in_executor(
-                    executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
-            os.remove(image_path)
-            results = {"model": model_name, 
+            
+            await remove_file(image_path)
+            results = {
+                "model": model_name,
                 "result_array_box": result_array_box,
-                 "classes": classes, 
-                 "inference_time": yolo_obj.speed['inference'],
-                 "confidence": result_confs,
-                 "avarage_confidence": calculate_average(result_confs),
-                 "descriptions_text_AI_model": descriptions_based_on_class_names, 
-                 "descriptions_image_and_text_AI_model": descriptions_based_on_image 
-                 }
-        # elif model_name == "yolov9":
-        #     pass
-        # etc
+                "classes": classes,
+                "inference_time": yolo_obj.speed['inference'],
+                "confidence": result_confs,
+                "avarage_confidence": calculate_average(result_confs),
+                "descriptions_text_AI_model": descriptions_based_on_class_names,
+                "descriptions_image_and_text_AI_model": descriptions_based_on_image
+            }
         else:
             raise ValueError("Unknown 'model_name':", model_name)
         
@@ -280,8 +291,9 @@ async def get_best_result(models: List[str], model_text_AI_name: str, model_text
         for model_name in models:
             if model_name == "yolov8":
                 model = global_ml_models.yolov8Model
-                # results_ = model.infer(image_path)
-                results_ = await asyncio.get_event_loop().run_in_executor(executor, model.infer, image_path)
+                event_loop = asyncio.get_event_loop()
+                results_ = model.infer(image_path)
+                # results_ = await asyncio.get_event_loop().run_in_executor(executor, model.infer, image_path)
                 yolo_obj = results_[0]
                 result_array_box = process_nn_results_coordinates(yolo_obj)
                 classes = process_nn_result_class_names(yolo_obj)
