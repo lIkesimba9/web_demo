@@ -227,7 +227,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Выберите толщину линий:", reply_markup=reply_markup)
-        await show_main_menu(context, query.message.chat_id, 'Привет! Настройте параметры для анализа:')
+        await show_main_menu(context, query.message.chat_id, '_Можете загружать очередное изображение_')
     elif query.data.startswith('line_thickness_'):
         line_thickness = int(query.data.split('_')[2])
         params['line_thickness'] = line_thickness
