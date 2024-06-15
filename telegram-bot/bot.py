@@ -45,7 +45,7 @@ default_params = {
     'confidence_threshold': 0.1,
     'line_thickness': 6,
     'line_color': 'blue',
-    'use_diff_color_for_diff_classes': 'false',
+    'use_diff_color_for_diff_classes': 'true',
     'show_box_info': 'true',
     'class_font_scale': "0.9",
     'class_font_color': 'blue',
@@ -385,7 +385,7 @@ async def process_image_and_send(file_path, params, file_id, update, context):
 
     caption = (
         f"***Average confidence:***  `{'{:.2f}'.format(inference_result['avarage_confidence'])}`\n"
-        f"***Inference time:***           `{'{:.3f} ms'.format(inference_result['inference_time'])}`\n"
+        f"***Inference time:***            `{'{:.3f} ms'.format(inference_result['inference_time'])}`\n"
     )
 
     AI_assistents_messages = (
