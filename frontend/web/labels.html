@@ -138,12 +138,8 @@
             imageCanvas.addEventListener('mousemove', draw);
             imageCanvas.addEventListener('mouseup', endDrawing);
 
-            console.log(image.width, image.height, imageCanvas.width, imageCanvas.height)
-
             document.scale_w = image.width  / imageCanvas.clientWidth;
             document.scale_h = image.height / imageCanvas.clientHeight;
-
-            console.log(document.scale_w, document.scale_h);
         }
 
         function startDrawing(event) {
@@ -196,9 +192,9 @@
             ctx.lineWidth = 24;
             ctx.stroke();
             ctx.fillStyle = annotation.color;
-            ctx.font = '178px Arial';
-            ctx.fillText(`Класс: ${annotation.class}`, x1, y1 - 25);
-            ctx.fillText(`Описание: ${annotation.description}`, x2 + 20, y1);
+            ctx.font = '140px Arial';
+            ctx.fillText(`Класс: ${annotation.class}`, x1, y1 - 200);
+            ctx.fillText(`Описание: ${annotation.description}`, x1, y1 - 50);
         }
 
         function finishAnnotation() {
@@ -206,46 +202,34 @@
             const classes = annotations.map(a => a.class);
             const descriptions = annotations.map(a => a.description);
 
-            console.log('labels =', labels);
-            console.log('classes =', classes);
-            console.log('descriptions =', descriptions);
-
             imageCanvas.toBlob((blob) => {
-            file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
+                const file = new File([blob], "fileName.jpg", { type: "image/jpeg" });
 
-            const xhr = new XMLHttpRequest();
+                const xhr = new XMLHttpRequest();
+                const fileData = new FormData();
+                fileData.append("file", file);
+                fileData.append('to_train', 'false');
+                fileData.append('labels', JSON.stringify(labels));
+                fileData.append('classes', JSON.stringify(classes));
+                fileData.append('descriptions', JSON.stringify(descriptions));
 
-            const fileData = new FormData();
-            fileData.append("file", file);
+                xhr.onload = function () {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log(response);
+                    alert('Ok');
+                    
+                    // Сброс всех аннотаций и очистка холста
+                    annotations = [];
+                    ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+                    image = new Image(); // сбрасываем изображение
+                    fileInput.value = ""; // сбрасываем файл
 
-            fileData.append('to_train', 'false')
-            fileData.append('labels', JSON.stringify(labels))
-            fileData.append('classes', JSON.stringify(classes))
-            fileData.append('descriptions', JSON.stringify(descriptions))            
+                    // Вы можете добавить сюда дополнительные действия, если нужно
+                };
 
-            xhr.onload = function (r) {
-
-                response = JSON.parse(xhr.responseText);
-
-                console.log(response);
-
-                alert('Ok')
-                //if ( response.success )
-                //    onResponse(response);
-                //else
-                //   alert(response.message);
-
-            };
-
-            xhr.open("POST", "{{ BACKEND }}/upload_labeled_image?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
-            xhr.send(fileData);
-
+                xhr.open("POST", "{{ BACKEND }}/upload_labeled_image?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
+                xhr.send(fileData);
             }, 'image/jpeg');
-
-            //debugger;
-
-            //annotations = [];
-            //ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
         }
 
         function redrawImage() {
@@ -258,4 +242,3 @@
     </script>
 </body>
 </html>
-
