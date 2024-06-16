@@ -6,25 +6,30 @@ Build & run all services:
 3. Start services:
 
 Optionaly: ```RUN_OLLAMA```
+
 Optionaly: ```<you_google_api_token>``` (from ```https://aistudio.google.com/app/apikey```)
+
 Required: ```<you_telegram_bot_token>```
 
 Required: openssl
+
 ```
 chmod +x start_services.sh
 ```
 
 YOLOV8
+```
 ./start_services.sh ```<you_telegram_bot_token>```
 ```
 
 YOLOV8 + GEMINI
+```
 ./start_services.sh ```<you_telegram_bot_token>``` ```<you_google_api_token>```
-
+```
 
 YOLOV8 + GEMINI + OLLAMA
 ```
-./start_services.sh ```<you_telegram_bot_token>``` ```<you_google_api_token>``` RUN_OLLAMA
+./start_services.sh ```<you_telegram_bot_token>``` ```<you_google_api_token>``` ```RUN_OLLAMA```
 ```
 
 4. Run in browser:
