@@ -1,6 +1,7 @@
 Build & run all services:
 
 1. git clone https://github.com/lIkesimba9/web_demo.git
+
 2. [Optionally: for using "Gemini"-network via VPN] Create and put ```config``` folder (with ```auth.txt``` and ```credentials.ovpn```) to ```./web_demo/gemini_proxy```
 
 3. Start services:
