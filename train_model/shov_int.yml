@@ -1,0 +1,5 @@
+names:
+  0: int
+path: /home/simba9/pet/shov/data_int
+train: images/train
+val: images/val

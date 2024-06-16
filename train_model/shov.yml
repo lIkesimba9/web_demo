@@ -1,0 +1,9 @@
+names:
+  0: adj
+  1: int
+  2: geo
+  3: pro
+  4: non
+path: /home/simba9/pet/shov/data_new
+train: images/train
+val: images/val

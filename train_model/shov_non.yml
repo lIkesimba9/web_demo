@@ -1,0 +1,5 @@
+names:
+  0: non
+path: /home/simba9/pet/shov/data_non
+train: images/train
+val: images/val

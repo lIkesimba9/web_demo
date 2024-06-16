@@ -1,0 +1,5 @@
+names:
+  0: pro
+path: /home/simba9/pet/shov/data_pro
+train: images/train
+val: images/val

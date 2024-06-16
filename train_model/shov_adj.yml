@@ -1,0 +1,5 @@
+names:
+  0: adj
+path: /home/simba9/pet/shov/data_adj
+train: images/train
+val: images/val
