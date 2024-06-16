@@ -38,6 +38,7 @@ services:
     container_name: ml-backend-container
     ports:
       - "8004:8004"
+      - "8084:8084"
     volumes:
       - ./backend/certs:/certs
     networks:

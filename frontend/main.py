@@ -12,8 +12,10 @@ logging.basicConfig(level=logging.INFO)
 
 # TODO: move to .env or args
 BACKEND = os.environ.get('BACKEND', "http://localhost:8004")
+BACKEND_HTTPS = os.environ.get('BACKEND_HTTPS', "http://localhost:8084")
 
 logging.info(f"Backend is: {BACKEND}")
+logging.info(f"Backend_https is: {BACKEND_HTTPS}")
 
 app = FastAPI()
 
@@ -25,7 +27,7 @@ async def index():
 @app.get("/stream", response_class=HTMLResponse)
 async def stream():
     with open('web/stream.html') as f:
-        return Template(f.read()).render(BACKEND=BACKEND)
+        return Template(f.read()).render(BACKEND_HTTPS=BACKEND_HTTPS)
 
 @app.get("/labels", response_class=HTMLResponse)
 async def labels():

@@ -3,15 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Annotation Tool</title>
+    <title>Атомик Хак 2.0 :: team9</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #main-content {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
         }
         #controls {
             display: flex;
@@ -19,22 +41,25 @@
             margin-bottom: 20px;
         }
         button, input[type="file"] {
-            margin: 0 10px;
             padding: 10px 20px;
+            margin: 0 10px;
             border: none;
-            background-color: #007bff;
+            border-radius: 8px;
+            background-color: #4CAF50;
             color: white;
-            cursor: pointer;
             font-size: 16px;
-            border-radius: 5px;
+            cursor: pointer;
             transition: background-color 0.3s ease;
         }
         button:hover, input[type="file"]:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
         }
         #imageCanvas {
             border: 1px solid black;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 75%;
+            margin-bottom: 20px;
         }
         #modal {
             display: none;
@@ -53,7 +78,7 @@
             padding: 20px;
             border: 1px solid #888;
             width: 300px;
-            border-radius: 5px;
+            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         #modalContent label {
@@ -65,7 +90,7 @@
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
         }
         #saveAnnotationButton {
             background-color: #28a745;
@@ -73,17 +98,36 @@
         #saveAnnotationButton:hover {
             background-color: #218838;
         }
+        .conf {
+            color: black;
+            background: white;
+            position: absolute;
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .region {
+            border: 2px solid yellow;
+            position: absolute;
+            border-radius: 4px;
+        }
+        .region:hover {
+            border: 2px solid red;
+        }
     </style>
 </head>
 <body>
-    <h1>Атомик Хак 2.0 :: team9</h1>
-    <div id="controls">
-        <input type="file" id="fileInput">
-        <button id="addAnnotationButton">Добавить разметку элемента на изображении</button>
-        <button id="finishAnnotationButton">Завершить разметку изображения</button>
+    <header>
+        <h1>Атомик Хак 2.0 :: team9</h1>
+    </header>
+    <div id="main-content">
+        <div id="controls">
+            <input type="file" id="fileInput">
+            <button id="addAnnotationButton">Добавить разметку элемента на изображении</button>
+            <button id="finishAnnotationButton">Завершить разметку изображения</button>
+        </div>
+        <canvas id="imageCanvas"></canvas>
     </div>
-    <hr>
-    <canvas id="imageCanvas" style="width: 75%"></canvas>
 
     <div id="modal">
         <div id="modalContent">
@@ -138,7 +182,7 @@
             imageCanvas.addEventListener('mousemove', draw);
             imageCanvas.addEventListener('mouseup', endDrawing);
 
-            document.scale_w = image.width  / imageCanvas.clientWidth;
+            document.scale_w = image.width / imageCanvas.clientWidth;
             document.scale_h = image.height / imageCanvas.clientHeight;
         }
 
@@ -216,7 +260,7 @@
                 xhr.onload = function () {
                     const response = JSON.parse(xhr.responseText);
                     console.log(response);
-                    alert('Ok');
+                    // alert('Ok');
                     
                     // Сброс всех аннотаций и очистка холста
                     annotations = [];

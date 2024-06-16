@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import aiofiles
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Process
+import uvicorn
 
 classes_idx = {
     0 :'adj',
@@ -38,6 +40,7 @@ class MLModelsInit:
     def __init__(self):
         global global_ml_models
         self.yolov8Model = YOLOModel("yolov8")
+        self.adjModel = YOLOModel("agj")
         global_ml_models = self
 
 # YOLO Model Class
@@ -367,13 +370,26 @@ async def upload_labeled_image(
 def read_root():
     return {"message": "Welcome to the ML Backend API"}
 
+def run_http():
+    uvicorn.run("main:app", host="0.0.0.0", port=8004)
+
+def run_https():
+    uvicorn.run("main:app", host="0.0.0.0", port=8084, ssl_keyfile="/certs/server.key", ssl_certfile="/certs/server.crt")
+
 if __name__ == "__main__":
-    import uvicorn
     dir1 = "images"
     dir2 = "temp"
+    
     if not os.path.exists(dir1):
         os.makedirs(dir1)
     if not os.path.exists(dir2):
         os.makedirs(dir2)
-    uvicorn.run(app, host="0.0.0.0", port=8004)
-    # uvicorn.run(app, host="0.0.0.0", port=8004, ssl_keyfile="/certs/server.key", ssl_certfile="/certs/server.crt")
+
+    p1 = Process(target=run_http)
+    p2 = Process(target=run_https)
+
+    p1.start()
+    p2.start()
+
+    p1.join()
+    p2.join()

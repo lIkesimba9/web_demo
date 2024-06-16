@@ -4,235 +4,203 @@
         - scale
         - response errors
         - preloader
-        - erase old regions after new image upladed
+        - erase old regions after new image uploaded
 -->
-<html>
-  <head>
-    <meta charset="utf-8" />
+<html lang="en">
+<head>
+    <meta charset="utf-8">
     <title>Атомик Хак 2.0 :: team9</title>
-
     <style>
-
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        button, input[type="file"] {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover, input[type="file"]:hover {
+            background-color: #45a049;
+        }
+        #container {
+            position: relative;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
         .conf {
             color: black;
             background: white;
             position: absolute;
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-
         .region {
             border: 2px solid yellow;
             position: absolute;
+            border-radius: 4px;
         }
-
         .region:hover {
             border: 2px solid red;
-            position: absolute;
         }
-
-        .centered {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
     </style>
+</head>
+<body>
+    <header>
+        <h1>Атомик Хак 2.0 :: team9</h1>
+        <p><a href="/stream">Stream</a>, <a href="/labels">Labels</a></p>
+    </header>
+    <div id="main-content">
+        <div id="controls">
+            <label for="file">Загрузить изображение:</label>
+            <input id="file" type="file" onchange="upload(this)">
+        </div>
+        <div id="container">
+            <img id="blah" />
+        </div>
+    </div>
 
-  </head>
-  <body>
-    <h1>Атомик Хак 2.0 :: team9</h1>
-    <p><a href="/stream">stream</a>, <a href="/labels">labels</a></p>
-    Загрузить изображение: <input id="file" type="file" onchange="upload(this)">
-    <hr>
-    <div id='container' style="position: relative;">
-        <img id="blah" />
+    <script>
+        const BACKEND = '{{ BACKEND }}';
+        const BACKEND_HTTPS = '{{ BACKEND_HTTPS }}';
 
+        console.log('BACKEND is: ' + BACKEND);
+        console.log('BACKEND_HTTPS is: ' + BACKEND_HTTPS);
 
-
-
-  </body>
-
-  <script>
-    BACKEND = '{{ BACKEND }}';
-
-    console.log('BACKEND is: ' + BACKEND);
-
-    function removeElementsByClass(className){
-        const elements = document.getElementsByClassName(className);
-        while(elements.length > 0){
-            elements[0].parentNode.removeChild(elements[0]);
-        }
-    }
-
-    function onResponse(response)
-    {
-
-        removeElementsByClass('region');
-        removeElementsByClass('conf');
-        //document.getElementById( 'image-width').innerHTML =  'Width: ' + response['info'][ 'width'];
-        //document.getElementById('image-height').innerHTML = 'Height: ' + response['info']['height'];
-        //document.getElementById(  'image-size').innerHTML =   'Size: ' + response['info'][  'size'];
-
-        results = response['results']['result_array_box'];
-
-        container = document.getElementById('container');
-
-        for(i=0;i<results.length;i++)
-        {
-            el = document.createElement('div');
-
-            el.setAttribute('class', 'region')
-
-            l = Math.round(response['results']['result_array_box'][i][0]*document.scale_w);
-            t = Math.round(response['results']['result_array_box'][i][1]*document.scale_h); 
-            w = Math.round(response['results']['result_array_box'][i][2]*document.scale_w) - l;
-            h = Math.round(response['results']['result_array_box'][i][3]*document.scale_h) - t;
-
-            console.log(l, t, w, h);
-
-            el.style.left   = l + 'px';
-            el.style.top    = t + 'px';
-            el.style.width  = w + 'px';
-            el.style.height = h + 'px';
-
-            container.appendChild(el);
-
-            conf = document.createElement('span');
-
-            conf.setAttribute('class', 'conf')
-
-            conf.innerText = 'Conf: ' + parseFloat(response['results']['confidence'][i]).toFixed(4);
-
-            conf.style.left   = l + 'px';
-            conf.style.top    = (t - 25) + 'px';
-
-            container.appendChild(conf);
-
-            cls = document.createElement('span');
-
-            cls.setAttribute('class', 'conf')
-
-            cls.innerText = 'Class: ' + response['results']['classes'][i];
-
-            cls.style.left = (l + w + 5) + 'px';
-            cls.style.top  = t + 'px';
-
-            container.appendChild(cls);
+        function removeElementsByClass(className) {
+            const elements = document.getElementsByClassName(className);
+            while (elements.length > 0) {
+                elements[0].parentNode.removeChild(elements[0]);
+            }
         }
 
-    }
+        function onResponse(response) {
+            removeElementsByClass('region');
+            removeElementsByClass('conf');
 
-    function upload(input) {
+            const results = response['results']['result_array_box'];
+            const container = document.getElementById('container');
 
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
+            console.log('Response received:', results);
 
-            reader.onload = function (e) {
+            for (let i = 0; i < results.length; i++) {
+                const el = document.createElement('div');
+                el.setAttribute('class', 'region');
 
+                const l = Math.round(results[i][0] * document.scale_w);
+                const t = Math.round(results[i][1] * document.scale_h);
+                const w = Math.round(results[i][2] * document.scale_w) - l;
+                const h = Math.round(results[i][3] * document.scale_h) - t;
 
-                //Initiate the JavaScript Image object.
-                var image = new Image();
+                console.log(`Box ${i + 1}:`, { left: l, top: t, width: w, height: h });
 
-                //Set the Base64 string return from FileReader as source.
-                image.src = e.target.result;
+                el.style.left = l + 'px';
+                el.style.top = t + 'px';
+                el.style.width = w + 'px';
+                el.style.height = h + 'px';
 
-                //Validate the File Height and Width.
-                image.onload = function () {
-                    var height = this.height;
-                    var width = this.width;
+                container.appendChild(el);
 
-                    img = document.getElementById('blah');
+                const conf = document.createElement('span');
+                conf.setAttribute('class', 'conf');
+                conf.innerText = 'Conf: ' + parseFloat(response['results']['confidence'][i]).toFixed(4);
+                conf.style.left = l + 'px';
+                conf.style.top = (t - 25) + 'px';
 
-                    img.setAttribute('src', e.target.result);
-                    img.setAttribute('width', '800vw');
+                container.appendChild(conf);
 
-                    document.scale_w = img.width  / width;
-                    document.scale_h = img.height / height;
+                const cls = document.createElement('span');
+                cls.setAttribute('class', 'conf');
+                cls.innerText = 'Class: ' + response['results']['classes'][i];
+                cls.style.left = (l + w + 5) + 'px';
+                cls.style.top = t + 'px';
 
-                    console.log(document.scale_w, document.scale_h);
-         
-                    /*
-                    response = {
-  "results": {
-    "model": "yolov8",
-    "result_array_box": [
-      [
-        4809,
-        2954,
-        5119,
-        3299
-      ],
-      [
-        389,
-        3168,
-        1099,
-        3863
-      ],
-      [
-        2,
-        1635,
-        252,
-        2204
-      ],
-      [
-        4296,
-        1149,
-        4607,
-        1446
-      ]
-    ],
-    "classes": [
-      "class0",
-      "class0",
-      "class0",
-      "class0"
-    ],
-    "inference_time": 119.73762512207031,
-    "confidence": [
-      0.9040091037750244,
-      0.8580820560455322,
-      0.27855193614959717,
-      0.266004741191864
-    ],
-    "avarage_confidence": 0.5766619592905045,
-    "descriptions_text_AI_model": "<no>",
-    "descriptions_image_and_text_AI_model": "<no>"
-  }
-};
-onResponse(response);
-*/
-                }
+                container.appendChild(cls);
+            }
+        }
 
+        function upload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
 
+                reader.onload = function (e) {
+                    const image = new Image();
+                    image.src = e.target.result;
 
-                //document.getElementById('blah').setAttribute('height', '75%');
-            };
+                    image.onload = function () {
+                        const height = this.height;
+                        const width = this.width;
 
-            reader.readAsDataURL(input.files[0]);
+                        const img = document.getElementById('blah');
+                        img.setAttribute('src', e.target.result);
+                        img.setAttribute('width', '800');
 
-            const xhr = new XMLHttpRequest();
+                        document.scale_w = img.width / width;
+                        document.scale_h = img.height / height;
 
-            const fileData = new FormData();
-            fileData.append("file", input.files[0]);
+                        console.log('Image dimensions:', { width, height });
+                        console.log('Scale factors:', { scale_w: document.scale_w, scale_h: document.scale_h });
+                    };
+                };
 
-            xhr.onload = function (r) {
+                reader.readAsDataURL(input.files[0]);
 
-                response = JSON.parse(xhr.responseText);
+                const xhr = new XMLHttpRequest();
+                const fileData = new FormData();
+                fileData.append("file", input.files[0]);
 
-                //if ( response.success )
+                xhr.onload = function () {
+                    const response = JSON.parse(xhr.responseText);
                     onResponse(response);
-                //else
-                //   alert(response.message);
+                };
 
-            };
-
-            xhr.open("POST", BACKEND + "/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
-            xhr.send(fileData);
+                xhr.open("POST", BACKEND + "/inference?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);
+                xhr.send(fileData);
+            }
         }
-
-    }
-
-    
-
-</script>
+    </script>
+</body>
 </html>
