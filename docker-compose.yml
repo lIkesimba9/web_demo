@@ -68,6 +68,7 @@ services:
     container_name: frontend-container
     ports:
       - "8010:8010"
+      - "8011:8011"
     networks:
       - custom_network
     volumes:

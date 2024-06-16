@@ -375,5 +375,5 @@ if __name__ == "__main__":
         os.makedirs(dir1)
     if not os.path.exists(dir2):
         os.makedirs(dir2)
-    # uvicorn.run(app, host="0.0.0.0", port=8004)
-    uvicorn.run(app, host="0.0.0.0", port=8004, ssl_keyfile="/certs/server.key", ssl_certfile="/certs/server.crt")
+    uvicorn.run(app, host="0.0.0.0", port=8004)
+    # uvicorn.run(app, host="0.0.0.0", port=8004, ssl_keyfile="/certs/server.key", ssl_certfile="/certs/server.crt")
