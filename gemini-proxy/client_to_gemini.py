@@ -14,7 +14,7 @@ def call_gemini_api(model_text_image_AI_name: str, text: str, file_path: str):
         return result_str
     else:
         raise Exception(f"Error {response.status_code}: {response.text}")
-# Пример использования
+
 model_name = "gemini-pro-vision"
 text_input = "Кто изображен на изображении?"
 file_path = "1.png"

@@ -1,5 +1,3 @@
-
-
 import logging
 import os
 import random
@@ -10,7 +8,6 @@ from tempfile import TemporaryDirectory
 
 logging.basicConfig(level=logging.INFO)
 
-# TODO: move to .env or args
 BACKEND = os.environ.get('BACKEND', "http://localhost:8004")
 BACKEND_HTTPS = os.environ.get('BACKEND_HTTPS', "http://localhost:8084")
 

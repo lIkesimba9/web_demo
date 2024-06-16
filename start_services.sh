@@ -17,6 +17,9 @@ fi
 
 TELEGRAM_BOT_TOKEN=$1
 
+sudo apt update
+sudo apt install openssl
+
 mkdir -p ./frontend/certs && cd ./frontend/certs
 openssl genrsa -out server.key 2048
 openssl req -new -key server.key -out server.csr -subj "/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyDepartmenta/CN=mydomaina.com"

@@ -1,11 +1,4 @@
 <!DOCTYPE html>
-<!--
-    TODO:
-        - scale
-        - response errors
-        - preloader
-        - erase old regions after new image uploaded
--->
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -250,7 +243,6 @@
                 console.log('sendFrame');
                 // logEvent('Frame sent for processing.');
 
-                // Повторно вызвать функцию через 500 миллисекунд
                 setTimeout(sendFrame, 500);
             }
 

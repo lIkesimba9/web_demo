@@ -1,6 +1,5 @@
 FROM nvcr.io/nvidia/tritonserver:23.02-py3
 
-# Install dependencies
 RUN pip install opencv-python && \
     apt update && \
     apt install -y libgl1 && \

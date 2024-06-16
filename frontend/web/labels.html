@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Атомик Хак 2.0 :: team9</title>
+    <title>Атомик Хак 2.0 :: team9 :: Index Station</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -118,7 +118,7 @@
 </head>
 <body>
     <header>
-        <h1>Атомик Хак 2.0 :: team9</h1>
+        <h1>Атомик Хак 2.0 :: team9 :: Index Station</h1>
     </header>
     <div id="main-content">
         <div id="controls">
@@ -268,7 +268,6 @@
                     image = new Image(); // сбрасываем изображение
                     fileInput.value = ""; // сбрасываем файл
 
-                    // Вы можете добавить сюда дополнительные действия, если нужно
                 };
 
                 xhr.open("POST", "{{ BACKEND }}/upload_labeled_image?model_name=yolov8&model_text_AI_name=yolov8&model_text_image_AI_name=yolov8&run_AI_assistante=false", true);

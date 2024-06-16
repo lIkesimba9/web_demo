@@ -40,7 +40,11 @@ class MLModelsInit:
     def __init__(self):
         global global_ml_models
         self.yolov8Model = YOLOModel("yolov8")
-        self.adjModel = YOLOModel("agj")
+        self.adjModel = YOLOModel("adj")
+        self.geoModel = YOLOModel("geo")
+        self.intModel = YOLOModel("int")
+        self.proModel = YOLOModel("pro")
+        self.nonModel = YOLOModel("non")
         global_ml_models = self
 
 # YOLO Model Class
@@ -230,6 +234,63 @@ async def remove_file(filepath: str):
     except Exception as e:
         print(f"Error removing file {filepath}: {e}")
 
+async def image_process(model_name, model, image_path, model_text_AI_name, model_text_image_AI_name, run_AI_assistante):
+    try:
+        event_loop = asyncio.get_event_loop()
+        results_ = model.infer(image_path)
+        # results_ = await event_loop.run_in_executor(executor, model.infer, image_path)
+        yolo_obj = results_[0]
+        result_array_box = process_nn_results_coordinates(yolo_obj)
+        classes = process_nn_result_class_names(yolo_obj)
+        result_confs = process_nn_result_conf(yolo_obj)
+
+        descriptions_based_on_class_names = "<no>"
+        descriptions_based_on_image = "<no>"
+        if run_AI_assistante:
+            descriptions_based_on_class_names = await event_loop.run_in_executor(
+                executor, get_description_based_on_class_name, model_text_AI_name, classes)
+            descriptions_based_on_image = await event_loop.run_in_executor(
+                executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
+            # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
+            # descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
+        
+        await remove_file(image_path)
+
+        def full_all_values(value, array):
+            for i in range(len(array)):
+                array[i] = value
+
+        if model_name == "adj":
+            value = "adj"
+            full_all_values(value, classes)
+        elif model_name == "geo":
+            value = "geo"
+            full_all_values(value, classes)
+        elif model_name == "int":
+            value = "int"
+            full_all_values(value, classes)
+        elif model_name == "pro":
+            value = "pro"
+            full_all_values(value, classes)
+        elif model_name == "non":
+            value = "non"
+            full_all_values(value, classes)
+
+        results = {
+            "model": model_name,
+            "result_array_box": result_array_box,
+            "classes": classes,
+            "inference_time": yolo_obj.speed['inference'],
+            "confidence": result_confs,
+            "avarage_confidence": calculate_average(result_confs),
+            "descriptions_text_AI_model": descriptions_based_on_class_names,
+            "descriptions_image_and_text_AI_model": descriptions_based_on_image
+        }
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
 @app.post("/inference", response_model=InferenceResult, tags=["Inference"])
 async def infer_image(model_name: str, model_text_AI_name: str, model_text_image_AI_name: str, run_AI_assistante: bool, file: UploadFile = File(...)):
     """
@@ -242,38 +303,20 @@ async def infer_image(model_name: str, model_text_AI_name: str, model_text_image
         model = None
         results = None
         if model_name == "yolov8":
-            event_loop = asyncio.get_event_loop()
             model = global_ml_models.yolov8Model
-            results_ = model.infer(image_path)
-            # results_ = await event_loop.run_in_executor(executor, model.infer, image_path)
-            yolo_obj = results_[0]
-            result_array_box = process_nn_results_coordinates(yolo_obj)
-            classes = process_nn_result_class_names(yolo_obj)
-            result_confs = process_nn_result_conf(yolo_obj)
-
-            descriptions_based_on_class_names = "<no>"
-            descriptions_based_on_image = "<no>"
-            if run_AI_assistante:
-                descriptions_based_on_class_names = await event_loop.run_in_executor(
-                    executor, get_description_based_on_class_name, model_text_AI_name, classes)
-                descriptions_based_on_image = await event_loop.run_in_executor(
-                    executor, get_description_based_on_image, model_text_image_AI_name, image_path, result_array_box, classes)
-                # descriptions_based_on_class_names = get_description_based_on_class_name(model_text_AI_name, classes)
-                # descriptions_based_on_image = get_description_based_on_image(model_text_image_AI_name, image_path, result_array_box, classes)
-            
-            await remove_file(image_path)
-            results = {
-                "model": model_name,
-                "result_array_box": result_array_box,
-                "classes": classes,
-                "inference_time": yolo_obj.speed['inference'],
-                "confidence": result_confs,
-                "avarage_confidence": calculate_average(result_confs),
-                "descriptions_text_AI_model": descriptions_based_on_class_names,
-                "descriptions_image_and_text_AI_model": descriptions_based_on_image
-            }
+        elif model_name == "adj":
+            model = global_ml_models.adjModel
+        elif model_name == "geo":
+            model = global_ml_models.geoModel
+        elif model_name == "int":
+            model = global_ml_models.intModel
+        elif model_name == "pro":
+            model = global_ml_models.proModel
+        elif model_name == "non":
+            model = global_ml_models.nonModel
         else:
             raise ValueError("Unknown 'model_name':", model_name)
+        results = await image_process(model_name, model, image_path, model_text_AI_name, model_text_image_AI_name, run_AI_assistante)
         
         return {"results": results}
     except Exception as e:

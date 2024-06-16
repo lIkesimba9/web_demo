@@ -37,7 +37,6 @@ def get_color_code(color_name):
     }
     return colors.get(color_name.lower(), (0, 0, 0))
 
-# Начальные параметры
 default_params = {
     'model_name': 'yolov8',
     'model_text_AI_name': 'gpt3',
@@ -54,10 +53,8 @@ default_params = {
     'confidence_font_color': 'blue'
 }
 
-# Словари для хранения параметров пользователей
 user_params = {}
 
-# Функция для получения параметров пользователя или использования значений по умолчанию
 def get_user_params(user_id):
     if user_id not in user_params:
         user_params[user_id] = default_params.copy()
@@ -68,8 +65,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("⚙️ Настройки", callback_data='settings')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # await update.message.reply_text('Это телеграм\-бот `ML bot` проекта __VisionAI Suite__\. \n\nЧтобы начать пользоваться `ML bot` просто отправьте ему изображение для анализа\.\n\nДля гибкой конфигурирования `ML bot` перейдите\nв раздел `⚙️ Настройки`', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
-    await update.message.reply_text('Телеграм\-бот ML bot разработан в рамках решения задачи «Определение и классификация дефектов сварных швов с помощью ИИ» на Атомик Хак 2\.0\n\n***Чтобы начать пользоваться ML bot просто отправьте ему изображение\.***\n\nДля настройки ML bot может перейти в раздел ⚙️ Настройки', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    await update.message.reply_text('Телеграм\-бот \'ML bot\' разработан в рамках решения задачи «Определение и классификация дефектов сварных швов с помощью ИИ» на Атомик Хак 2\.0\n\n***Чтобы начать пользоваться \'ML bot\' просто отправьте ему изображение\.***\n\nДля настройки \'ML bot\' может перейти в раздел ⚙️ Настройки', reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
 
 async def show_main_menu(context, chat_id, text):
     keyboard = [
@@ -158,6 +154,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('choose_model'):
         keyboard = [
                 [InlineKeyboardButton("yolov8", callback_data='model_yolov8')],
+                [InlineKeyboardButton("adj", callback_data='model_adj')],
+                [InlineKeyboardButton("geo", callback_data='model_geo')],
+                [InlineKeyboardButton("int", callback_data='model_int')],
+                [InlineKeyboardButton("pro", callback_data='model_pro')],
+                [InlineKeyboardButton("non", callback_data='model_non')],
                 [InlineKeyboardButton("resnet50", callback_data='model_resnet50')]
             ]
         await query.edit_message_text(text="Выберите модель:", reply_markup=InlineKeyboardMarkup(keyboard))
